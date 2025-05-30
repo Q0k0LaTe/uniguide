@@ -1,0 +1,879 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniGuide | 信息填写向导</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        
+        .form-input:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+        
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        
+        .step-active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        
+        .step-completed {
+            background-color: #c7d2fe;
+            color: #4f46e5;
+        }
+        
+        .step-inactive {
+            background-color: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .step-line {
+            height: 2px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .step-line-active {
+            background-color: #4f46e5;
+        }
+        
+        .step-line-inactive {
+            background-color: #e5e7eb;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .form-panel {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        
+        .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            appearance: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex-shrink-0 flex items-center">
+                        <svg class="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        <span class="ml-2 text-xl font-bold text-gray-900">UniGuide</span>
+                    </a>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                    <a href="#" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">关于我们</a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">帮助中心</a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">联系我们</a>
+                </div>
+                <div class="flex items-center">
+                    <a href="#" class="text-indigo-600 hover:text-indigo-800 px-3 py-2 rounded-md text-sm font-medium">退出</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="flex-grow flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl w-full space-y-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold text-gray-900">
+                    完善您的个人信息
+                </h2>
+                <p class="mt-2 text-gray-600">
+                    请填写以下信息，帮助我们为您提供更精准的大学申请建议
+                </p>
+            </div>
+            
+            <!-- 步骤指示器 -->
+            <div class="flex items-center justify-between w-full py-4">
+                <div class="flex items-center w-full">
+                    <div class="flex flex-col items-center">
+                        <div id="step-indicator-1" class="step-indicator step-active flex items-center justify-center w-10 h-10 rounded-full text-lg font-medium">
+                            1
+                        </div>
+                        <span class="mt-2 text-sm font-medium text-gray-900">基本信息</span>
+                    </div>
+                    <div class="flex-grow mx-2">
+                        <div id="step-line-1" class="step-line step-line-inactive"></div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div id="step-indicator-2" class="step-indicator step-inactive flex items-center justify-center w-10 h-10 rounded-full text-lg font-medium">
+                            2
+                        </div>
+                        <span class="mt-2 text-sm font-medium text-gray-500">学术背景</span>
+                    </div>
+                    <div class="flex-grow mx-2">
+                        <div id="step-line-2" class="step-line step-line-inactive"></div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div id="step-indicator-3" class="step-indicator step-inactive flex items-center justify-center w-10 h-10 rounded-full text-lg font-medium">
+                            3
+                        </div>
+                        <span class="mt-2 text-sm font-medium text-gray-500">语言成绩</span>
+                    </div>
+                    <div class="flex-grow mx-2">
+                        <div id="step-line-3" class="step-line step-line-inactive"></div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div id="step-indicator-4" class="step-indicator step-inactive flex items-center justify-center w-10 h-10 rounded-full text-lg font-medium">
+                            4
+                        </div>
+                        <span class="mt-2 text-sm font-medium text-gray-500">活动经历</span>
+                    </div>
+                    <div class="flex-grow mx-2">
+                        <div id="step-line-4" class="step-line step-line-inactive"></div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div id="step-indicator-5" class="step-indicator step-inactive flex items-center justify-center w-10 h-10 rounded-full text-lg font-medium">
+                            5
+                        </div>
+                        <span class="mt-2 text-sm font-medium text-gray-500">申请偏好</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 表单内容 -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg p-6">
+                <!-- 步骤 1: 基本信息 -->
+                <div id="step-1" class="form-panel animate-fade-in">
+                    <h3 class="text-lg font-medium text-gray-900 mb-6">基本信息</h3>
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div>
+                            <label for="first-name" class="block text-sm font-medium text-gray-700">姓</label>
+                            <input type="text" name="first-name" id="first-name" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您的姓">
+                        </div>
+                        <div>
+                            <label for="last-name" class="block text-sm font-medium text-gray-700">名</label>
+                            <input type="text" name="last-name" id="last-name" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您的名">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">电子邮箱</label>
+                            <input type="email" name="email" id="email" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="example@example.com">
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700">手机号码</label>
+                            <input type="tel" name="phone" id="phone" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您的手机号码">
+                        </div>
+                        <div>
+                            <label for="birth-date" class="block text-sm font-medium text-gray-700">出生日期</label>
+                            <input type="date" name="birth-date" id="birth-date" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="gender" class="block text-sm font-medium text-gray-700">性别</label>
+                            <select id="gender" name="gender" class="form-select mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">请选择</option>
+                                <option value="male">男</option>
+                                <option value="female">女</option>
+                                <option value="other">其他</option>
+                                <option value="prefer-not-to-say">不愿透露</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="address" class="block text-sm font-medium text-gray-700">居住地址</label>
+                            <input type="text" name="address" id="address" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您的居住地址">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 步骤 2: 学术背景 -->
+                <div id="step-2" class="form-panel hidden">
+                    <h3 class="text-lg font-medium text-gray-900 mb-6">学术背景</h3>
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div>
+                            <label for="education-level" class="block text-sm font-medium text-gray-700">当前教育阶段</label>
+                            <select id="education-level" name="education-level" class="form-select mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">请选择</option>
+                                <option value="high-school">高中</option>
+                                <option value="undergraduate">本科</option>
+                                <option value="graduate">研究生</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="graduation-year" class="block text-sm font-medium text-gray-700">毕业/预计毕业年份</label>
+                            <select id="graduation-year" name="graduation-year" class="form-select mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">请选择</option>
+                                <option value="2023">2023</option>
+                                <option value="2024">2024</option>
+                                <option value="2025">2025</option>
+                                <option value="2026">2026</option>
+                                <option value="2027">2027</option>
+                                <option value="2028">2028</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="school-name" class="block text-sm font-medium text-gray-700">学校名称</label>
+                            <input type="text" name="school-name" id="school-name" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您的学校名称">
+                        </div>
+                        <div>
+                            <label for="major" class="block text-sm font-medium text-gray-700">专业/方向</label>
+                            <input type="text" name="major" id="major" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您的专业或方向">
+                        </div>
+                        <div>
+                            <label for="gpa" class="block text-sm font-medium text-gray-700">GPA (满分4.0)</label>
+                            <input type="number" step="0.01" min="0" max="4" name="gpa" id="gpa" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="例如: 3.5">
+                        </div>
+                        <div>
+                            <label for="ranking" class="block text-sm font-medium text-gray-700">班级排名 (%)</label>
+                            <input type="number" min="1" max="100" name="ranking" id="ranking" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="例如: 10 (表示前10%)">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="academic-achievements" class="block text-sm font-medium text-gray-700">学术成就</label>
+                            <textarea id="academic-achievements" name="academic-achievements" rows="3" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请简述您的主要学术成就，如获奖情况、发表论文等"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 步骤 3: 语言成绩 -->
+                <div id="step-3" class="form-panel hidden">
+                    <h3 class="text-lg font-medium text-gray-900 mb-6">语言成绩</h3>
+                    <div class="space-y-6">
+                        <div class="border border-gray-200 rounded-md p-4">
+                            <h4 class="text-md font-medium text-gray-900 mb-4">托福 (TOEFL)</h4>
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div>
+                                    <label for="toefl-total" class="block text-sm font-medium text-gray-700">总分</label>
+                                    <input type="number" min="0" max="120" name="toefl-total" id="toefl-total" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0-120">
+                                </div>
+                                <div>
+                                    <label for="toefl-date" class="block text-sm font-medium text-gray-700">考试日期</label>
+                                    <input type="date" name="toefl-date" id="toefl-date" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="toefl-reading" class="block text-sm font-medium text-gray-700">阅读</label>
+                                    <input type="number" min="0" max="30" name="toefl-reading" id="toefl-reading" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0-30">
+                                </div>
+                                <div>
+                                    <label for="toefl-listening" class="block text-sm font-medium text-gray-700">听力</label>
+                                    <input type="number" min="0" max="30" name="toefl-listening" id="toefl-listening" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0-30">
+                                </div>
+                                <div>
+                                    <label for="toefl-speaking" class="block text-sm font-medium text-gray-700">口语</label>
+                                    <input type="number" min="0" max="30" name="toefl-speaking" id="toefl-speaking" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0-30">
+                                </div>
+                                <div>
+                                    <label for="toefl-writing" class="block text-sm font-medium text-gray-700">写作</label>
+                                    <input type="number" min="0" max="30" name="toefl-writing" id="toefl-writing" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0-30">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-md p-4">
+                            <h4 class="text-md font-medium text-gray-900 mb-4">雅思 (IELTS)</h4>
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div>
+                                    <label for="ielts-overall" class="block text-sm font-medium text-gray-700">总分</label>
+                                    <input type="number" min="0" max="9" step="0.5" name="ielts-overall" id="ielts-overall" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0-9">
+                                </div>
+                                <div>
+                                    <label for="ielts-date" class="block text-sm font-medium text-gray-700">考试日期</label>
+                                    <input type="date" name="ielts-date" id="ielts-date" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="ielts-reading" class="block text-sm font-medium text-gray-700">阅读</label>
+                                    <input type="number" min="0" max="9" step="0.5" name="ielts-reading" id="ielts-reading" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0-9">
+                                </div>
+                                <div>
+                                    <label for="ielts-listening" class="block text-sm font-medium text-gray-700">听力</label>
+                                    <input type="number" min="0" max="9" step="0.5" name="ielts-listening" id="ielts-listening" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0-9">
+                                </div>
+                                <div>
+                                    <label for="ielts-speaking" class="block text-sm font-medium text-gray-700">口语</label>
+                                    <input type="number" min="0" max="9" step="0.5" name="ielts-speaking" id="ielts-speaking" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0-9">
+                                </div>
+                                <div>
+                                    <label for="ielts-writing" class="block text-sm font-medium text-gray-700">写作</label>
+                                    <input type="number" min="0" max="9" step="0.5" name="ielts-writing" id="ielts-writing" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0-9">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-md p-4">
+                            <h4 class="text-md font-medium text-gray-900 mb-4">GRE</h4>
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div>
+                                    <label for="gre-verbal" class="block text-sm font-medium text-gray-700">Verbal</label>
+                                    <input type="number" min="130" max="170" name="gre-verbal" id="gre-verbal" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="130-170">
+                                </div>
+                                <div>
+                                    <label for="gre-quantitative" class="block text-sm font-medium text-gray-700">Quantitative</label>
+                                    <input type="number" min="130" max="170" name="gre-quantitative" id="gre-quantitative" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="130-170">
+                                </div>
+                                <div>
+                                    <label for="gre-writing" class="block text-sm font-medium text-gray-700">Analytical Writing</label>
+                                    <input type="number" min="0" max="6" step="0.5" name="gre-writing" id="gre-writing" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0-6">
+                                </div>
+                                <div>
+                                    <label for="gre-date" class="block text-sm font-medium text-gray-700">考试日期</label>
+                                    <input type="date" name="gre-date" id="gre-date" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 步骤 4: 活动经历 -->
+                <div id="step-4" class="form-panel hidden">
+                    <h3 class="text-lg font-medium text-gray-900 mb-6">活动经历</h3>
+                    <div class="space-y-6">
+                        <div class="border border-gray-200 rounded-md p-4">
+                            <h4 class="text-md font-medium text-gray-900 mb-4">实习经历</h4>
+                            <div id="internship-container">
+                                <div class="internship-item border-b border-gray-200 pb-4 mb-4">
+                                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                        <div>
+                                            <label for="internship-company-1" class="block text-sm font-medium text-gray-700">公司/组织名称</label>
+                                            <input type="text" name="internship-company-1" id="internship-company-1" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入公司或组织名称">
+                                        </div>
+                                        <div>
+                                            <label for="internship-position-1" class="block text-sm font-medium text-gray-700">职位</label>
+                                            <input type="text" name="internship-position-1" id="internship-position-1" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您的职位">
+                                        </div>
+                                        <div>
+                                            <label for="internship-start-1" class="block text-sm font-medium text-gray-700">开始日期</label>
+                                            <input type="date" name="internship-start-1" id="internship-start-1" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                        </div>
+                                        <div>
+                                            <label for="internship-end-1" class="block text-sm font-medium text-gray-700">结束日期</label>
+                                            <input type="date" name="internship-end-1" id="internship-end-1" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                        </div>
+                                        <div class="sm:col-span-2">
+                                            <label for="internship-description-1" class="block text-sm font-medium text-gray-700">职责描述</label>
+                                            <textarea id="internship-description-1" name="internship-description-1" rows="3" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请简述您的主要职责和成就"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="button" id="add-internship" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <svg class="-ml-0.5 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    添加实习经历
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-md p-4">
+                            <h4 class="text-md font-medium text-gray-900 mb-4">课外活动</h4>
+                            <div id="activity-container">
+                                <div class="activity-item border-b border-gray-200 pb-4 mb-4">
+                                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                        <div>
+                                            <label for="activity-name-1" class="block text-sm font-medium text-gray-700">活动名称</label>
+                                            <input type="text" name="activity-name-1" id="activity-name-1" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入活动名称">
+                                        </div>
+                                        <div>
+                                            <label for="activity-role-1" class="block text-sm font-medium text-gray-700">角色</label>
+                                            <input type="text" name="activity-role-1" id="activity-role-1" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您在活动中的角色">
+                                        </div>
+                                        <div>
+                                            <label for="activity-start-1" class="block text-sm font-medium text-gray-700">开始日期</label>
+                                            <input type="date" name="activity-start-1" id="activity-start-1" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                        </div>
+                                        <div>
+                                            <label for="activity-end-1" class="block text-sm font-medium text-gray-700">结束日期</label>
+                                            <input type="date" name="activity-end-1" id="activity-end-1" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                        </div>
+                                        <div class="sm:col-span-2">
+                                            <label for="activity-description-1" class="block text-sm font-medium text-gray-700">活动描述</label>
+                                            <textarea id="activity-description-1" name="activity-description-1" rows="3" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请简述活动内容和您的贡献"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="button" id="add-activity" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <svg class="-ml-0.5 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    添加课外活动
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-md p-4">
+                            <h4 class="text-md font-medium text-gray-900 mb-4">志愿服务</h4>
+                            <div id="volunteer-container">
+                                <div class="volunteer-item border-b border-gray-200 pb-4 mb-4">
+                                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                        <div>
+                                            <label for="volunteer-org-1" class="block text-sm font-medium text-gray-700">组织名称</label>
+                                            <input type="text" name="volunteer-org-1" id="volunteer-org-1" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入组织名称">
+                                        </div>
+                                        <div>
+                                            <label for="volunteer-role-1" class="block text-sm font-medium text-gray-700">角色</label>
+                                            <input type="text" name="volunteer-role-1" id="volunteer-role-1" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您的角色">
+                                        </div>
+                                        <div>
+                                            <label for="volunteer-start-1" class="block text-sm font-medium text-gray-700">开始日期</label>
+                                            <input type="date" name="volunteer-start-1" id="volunteer-start-1" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                        </div>
+                                        <div>
+                                            <label for="volunteer-end-1" class="block text-sm font-medium text-gray-700">结束日期</label>
+                                            <input type="date" name="volunteer-end-1" id="volunteer-end-1" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                        </div>
+                                        <div class="sm:col-span-2">
+                                            <label for="volunteer-description-1" class="block text-sm font-medium text-gray-700">服务描述</label>
+                                            <textarea id="volunteer-description-1" name="volunteer-description-1" rows="3" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请简述服务内容和您的贡献"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="button" id="add-volunteer" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <svg class="-ml-0.5 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    添加志愿服务
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 步骤 5: 申请偏好 -->
+                <div id="step-5" class="form-panel hidden">
+                    <h3 class="text-lg font-medium text-gray-900 mb-6">申请偏好</h3>
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div>
+                            <label for="degree-level" class="block text-sm font-medium text-gray-700">目标学位</label>
+                            <select id="degree-level" name="degree-level" class="form-select mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">请选择</option>
+                                <option value="bachelor">本科</option>
+                                <option value="master">硕士</option>
+                                <option value="phd">博士</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="start-term" class="block text-sm font-medium text-gray-700">计划入学学期</label>
+                            <select id="start-term" name="start-term" class="form-select mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">请选择</option>
+                                <option value="fall-2023">2023年秋季</option>
+                                <option value="spring-2024">2024年春季</option>
+                                <option value="fall-2024">2024年秋季</option>
+                                <option value="spring-2025">2025年春季</option>
+                                <option value="fall-2025">2025年秋季</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="target-major" class="block text-sm font-medium text-gray-700">目标专业</label>
+                            <input type="text" name="target-major" id="target-major" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您的目标专业">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="target-countries" class="block text-sm font-medium text-gray-700">目标国家/地区</label>
+                            <div class="mt-2 space-y-2">
+                                <div class="flex items-center">
+                                    <input id="country-us" name="target-countries" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label for="country-us" class="ml-3 text-sm text-gray-700">美国</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="country-uk" name="target-countries" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label for="country-uk" class="ml-3 text-sm text-gray-700">英国</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="country-canada" name="target-countries" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label for="country-canada" class="ml-3 text-sm text-gray-700">加拿大</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="country-australia" name="target-countries" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label for="country-australia" class="ml-3 text-sm text-gray-700">澳大利亚</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="country-hongkong" name="target-countries" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label for="country-hongkong" class="ml-3 text-sm text-gray-700">中国香港</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="country-singapore" name="target-countries" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label for="country-singapore" class="ml-3 text-sm text-gray-700">新加坡</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="country-other" name="target-countries" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label for="country-other" class="ml-3 text-sm text-gray-700">其他</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="budget" class="block text-sm font-medium text-gray-700">预算范围 (每年学费+生活费，人民币)</label>
+                            <select id="budget" name="budget" class="form-select mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">请选择</option>
+                                <option value="under-200k">20万以下</option>
+                                <option value="200k-300k">20-30万</option>
+                                <option value="300k-400k">30-40万</option>
+                                <option value="400k-500k">40-50万</option>
+                                <option value="over-500k">50万以上</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="career-goal" class="block text-sm font-medium text-gray-700">职业目标</label>
+                            <textarea id="career-goal" name="career-goal" rows="3" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请简述您的长期职业规划和目标"></textarea>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="additional-info" class="block text-sm font-medium text-gray-700">其他信息</label>
+                            <textarea id="additional-info" name="additional-info" rows="3" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请提供任何其他您认为对申请有帮助的信息"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 导航按钮 -->
+                <div class="flex justify-between mt-8">
+                    <button type="button" id="prev-btn" class="btn-secondary inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        上一步
+                    </button>
+                    <div></div>
+                    <button type="button" id="next-btn" class="btn-primary inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        下一步
+                        <svg class="-mr-1 ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <button type="submit" id="submit-btn" class="btn-primary inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden">
+                        提交
+                        <svg class="-mr-1 ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white mt-12">
+        <div class="max-w-7xl mx-auto py-6 px-4 overflow-hidden sm:px-6 lg:px-8">
+            <nav class="-mx-5 -my-2 flex flex-wrap justify-center" aria-label="Footer">
+                <div class="px-5 py-2">
+                    <a href="#" class="text-base text-gray-500 hover:text-gray-900">
+                        关于我们
+                    </a>
+                </div>
+
+                <div class="px-5 py-2">
+                    <a href="#" class="text-base text-gray-500 hover:text-gray-900">
+                        隐私政策
+                    </a>
+                </div>
+
+                <div class="px-5 py-2">
+                    <a href="#" class="text-base text-gray-500 hover:text-gray-900">
+                        服务条款
+                    </a>
+                </div>
+
+                <div class="px-5 py-2">
+                    <a href="#" class="text-base text-gray-500 hover:text-gray-900">
+                        联系我们
+                    </a>
+                </div>
+            </nav>
+            <p class="mt-4 text-center text-base text-gray-400">
+                &copy; 2023 UniGuide. 保留所有权利。
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // 当前步骤
+        let currentStep = 1;
+        const totalSteps = 5;
+        
+        // 获取DOM元素
+        const stepIndicators = [];
+        const stepLines = [];
+        const formPanels = [];
+        
+        for (let i = 1; i <= totalSteps; i++) {
+            stepIndicators.push(document.getElementById(`step-indicator-${i}`));
+            if (i < totalSteps) {
+                stepLines.push(document.getElementById(`step-line-${i}`));
+            }
+            formPanels.push(document.getElementById(`step-${i}`));
+        }
+        
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        // 更新步骤指示器
+        function updateStepIndicators() {
+            for (let i = 0; i < totalSteps; i++) {
+                if (i + 1 < currentStep) {
+                    stepIndicators[i].classList.remove('step-active', 'step-inactive');
+                    stepIndicators[i].classList.add('step-completed');
+                    
+                    if (i < totalSteps - 1) {
+                        stepLines[i].classList.remove('step-line-inactive');
+                        stepLines[i].classList.add('step-line-active');
+                    }
+                } else if (i + 1 === currentStep) {
+                    stepIndicators[i].classList.remove('step-completed', 'step-inactive');
+                    stepIndicators[i].classList.add('step-active');
+                    
+                    if (i > 0 && i < totalSteps) {
+                        stepLines[i-1].classList.remove('step-line-inactive');
+                        stepLines[i-1].classList.add('step-line-active');
+                    }
+                } else {
+                    stepIndicators[i].classList.remove('step-active', 'step-completed');
+                    stepIndicators[i].classList.add('step-inactive');
+                    
+                    if (i < totalSteps - 1) {
+                        stepLines[i].classList.remove('step-line-active');
+                        stepLines[i].classList.add('step-line-inactive');
+                    }
+                }
+            }
+        }
+        
+        // 显示当前步骤的表单
+        function showCurrentStep() {
+            for (let i = 0; i < totalSteps; i++) {
+                if (i + 1 === currentStep) {
+                    formPanels[i].classList.remove('hidden');
+                    formPanels[i].classList.add('animate-fade-in');
+                } else {
+                    formPanels[i].classList.add('hidden');
+                    formPanels[i].classList.remove('animate-fade-in');
+                }
+            }
+            
+            // 更新按钮状态
+            if (currentStep === 1) {
+                prevBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+            }
+            
+            if (currentStep === totalSteps) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+        }
+        
+        // 下一步按钮点击事件
+        nextBtn.addEventListener('click', function() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateStepIndicators();
+                showCurrentStep();
+            }
+        });
+        
+        // 上一步按钮点击事件
+        prevBtn.addEventListener('click', function() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepIndicators();
+                showCurrentStep();
+            }
+        });
+        
+        // 提交按钮点击事件
+        submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // 这里可以添加表单验证和提交逻辑
+            alert('表单提交成功！我们将尽快为您提供申请建议。');
+            // 可以重定向到感谢页面或仪表板
+            // window.location.href = 'dashboard.html';
+        });
+        
+        // 添加实习经历
+        let internshipCount = 1;
+        document.getElementById('add-internship').addEventListener('click', function() {
+            internshipCount++;
+            const container = document.getElementById('internship-container');
+            const newInternship = document.createElement('div');
+            newInternship.className = 'internship-item border-b border-gray-200 pb-4 mb-4';
+            newInternship.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h5 class="text-sm font-medium text-gray-700">实习经历 #${internshipCount}</h5>
+                    <button type="button" class="remove-internship text-sm text-red-600 hover:text-red-800">
+                        删除
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                        <label for="internship-company-${internshipCount}" class="block text-sm font-medium text-gray-700">公司/组织名称</label>
+                        <input type="text" name="internship-company-${internshipCount}" id="internship-company-${internshipCount}" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入公司或组织名称">
+                    </div>
+                    <div>
+                        <label for="internship-position-${internshipCount}" class="block text-sm font-medium text-gray-700">职位</label>
+                        <input type="text" name="internship-position-${internshipCount}" id="internship-position-${internshipCount}" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您的职位">
+                    </div>
+                    <div>
+                        <label for="internship-start-${internshipCount}" class="block text-sm font-medium text-gray-700">开始日期</label>
+                        <input type="date" name="internship-start-${internshipCount}" id="internship-start-${internshipCount}" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="internship-end-${internshipCount}" class="block text-sm font-medium text-gray-700">结束日期</label>
+                        <input type="date" name="internship-end-${internshipCount}" id="internship-end-${internshipCount}" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label for="internship-description-${internshipCount}" class="block text-sm font-medium text-gray-700">职责描述</label>
+                        <textarea id="internship-description-${internshipCount}" name="internship-description-${internshipCount}" rows="3" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请简述您的主要职责和成就"></textarea>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newInternship);
+            
+            // 添加删除事件监听器
+            newInternship.querySelector('.remove-internship').addEventListener('click', function() {
+                container.removeChild(newInternship);
+            });
+        });
+        
+        // 添加课外活动
+        let activityCount = 1;
+        document.getElementById('add-activity').addEventListener('click', function() {
+            activityCount++;
+            const container = document.getElementById('activity-container');
+            const newActivity = document.createElement('div');
+            newActivity.className = 'activity-item border-b border-gray-200 pb-4 mb-4';
+            newActivity.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h5 class="text-sm font-medium text-gray-700">课外活动 #${activityCount}</h5>
+                    <button type="button" class="remove-activity text-sm text-red-600 hover:text-red-800">
+                        删除
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                        <label for="activity-name-${activityCount}" class="block text-sm font-medium text-gray-700">活动名称</label>
+                        <input type="text" name="activity-name-${activityCount}" id="activity-name-${activityCount}" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入活动名称">
+                    </div>
+                    <div>
+                        <label for="activity-role-${activityCount}" class="block text-sm font-medium text-gray-700">角色</label>
+                        <input type="text" name="activity-role-${activityCount}" id="activity-role-${activityCount}" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您在活动中的角色">
+                    </div>
+                    <div>
+                        <label for="activity-start-${activityCount}" class="block text-sm font-medium text-gray-700">开始日期</label>
+                        <input type="date" name="activity-start-${activityCount}" id="activity-start-${activityCount}" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="activity-end-${activityCount}" class="block text-sm font-medium text-gray-700">结束日期</label>
+                        <input type="date" name="activity-end-${activityCount}" id="activity-end-${activityCount}" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label for="activity-description-${activityCount}" class="block text-sm font-medium text-gray-700">活动描述</label>
+                        <textarea id="activity-description-${activityCount}" name="activity-description-${activityCount}" rows="3" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请简述活动内容和您的贡献"></textarea>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newActivity);
+            
+            // 添加删除事件监听器
+            newActivity.querySelector('.remove-activity').addEventListener('click', function() {
+                container.removeChild(newActivity);
+            });
+        });
+        
+        // 添加志愿服务
+        let volunteerCount = 1;
+        document.getElementById('add-volunteer').addEventListener('click', function() {
+            volunteerCount++;
+            const container = document.getElementById('volunteer-container');
+            const newVolunteer = document.createElement('div');
+            newVolunteer.className = 'volunteer-item border-b border-gray-200 pb-4 mb-4';
+            newVolunteer.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h5 class="text-sm font-medium text-gray-700">志愿服务 #${volunteerCount}</h5>
+                    <button type="button" class="remove-volunteer text-sm text-red-600 hover:text-red-800">
+                        删除
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                        <label for="volunteer-org-${volunteerCount}" class="block text-sm font-medium text-gray-700">组织名称</label>
+                        <input type="text" name="volunteer-org-${volunteerCount}" id="volunteer-org-${volunteerCount}" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入组织名称">
+                    </div>
+                    <div>
+                        <label for="volunteer-role-${volunteerCount}" class="block text-sm font-medium text-gray-700">角色</label>
+                        <input type="text" name="volunteer-role-${volunteerCount}" id="volunteer-role-${volunteerCount}" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请输入您的角色">
+                    </div>
+                    <div>
+                        <label for="volunteer-start-${volunteerCount}" class="block text-sm font-medium text-gray-700">开始日期</label>
+                        <input type="date" name="volunteer-start-${volunteerCount}" id="volunteer-start-${volunteerCount}" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="volunteer-end-${volunteerCount}" class="block text-sm font-medium text-gray-700">结束日期</label>
+                        <input type="date" name="volunteer-end-${volunteerCount}" id="volunteer-end-${volunteerCount}" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label for="volunteer-description-${volunteerCount}" class="block text-sm font-medium text-gray-700">服务描述</label>
+                        <textarea id="volunteer-description-${volunteerCount}" name="volunteer-description-${volunteerCount}" rows="3" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="请简述服务内容和您的贡献"></textarea>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newVolunteer);
+            
+            // 添加删除事件监听器
+            newVolunteer.querySelector('.remove-volunteer').addEventListener('click', function() {
+                container.removeChild(newVolunteer);
+            });
+        });
+        
+        // 初始化页面
+        updateStepIndicators();
+        showCurrentStep();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'947e9062947e7ace',t:'MTc0ODYxMTU5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

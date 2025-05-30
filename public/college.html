@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Rankings & Notes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .college-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .college-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .filter-drawer {
+            transition: transform 0.3s ease-in-out;
+        }
+        .notes-textarea {
+            resize: none;
+            transition: all 0.2s;
+        }
+        .notes-textarea:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+        .rank-badge {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-indigo-700 text-white shadow-md">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <h1 class="text-2xl font-bold">College Explorer</h1>
+                <div class="flex items-center space-x-4">
+                    <button id="filter-toggle" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        Filter & Compare
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-grow flex relative">
+            <!-- College List -->
+            <main class="container mx-auto px-4 py-6 flex-grow">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800">Top Ranked Colleges</h2>
+                    <div class="flex items-center">
+                        <label for="sort" class="mr-2 text-gray-600">Sort by:</label>
+                        <select id="sort" class="border rounded-md px-3 py-1.5 bg-white text-gray-700">
+                            <option value="rank">Rank</option>
+                            <option value="name">Name</option>
+                            <option value="acceptance">Acceptance Rate</option>
+                            <option value="tuition">Tuition</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="college-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- College cards will be inserted here by JavaScript -->
+                </div>
+            </main>
+
+            <!-- Filter Drawer (hidden by default) -->
+            <div id="filter-drawer" class="fixed inset-y-0 right-0 w-80 bg-white shadow-lg transform translate-x-full filter-drawer z-20">
+                <div class="p-5 h-full flex flex-col">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold">Filter & Compare</h3>
+                        <button id="close-filter" class="text-gray-500 hover:text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="space-y-5 flex-grow overflow-y-auto">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                            <select id="location-filter" class="w-full border rounded-md px-3 py-2">
+                                <option value="">All Locations</option>
+                                <option value="Northeast">Northeast</option>
+                                <option value="Midwest">Midwest</option>
+                                <option value="South">South</option>
+                                <option value="West">West</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" class="rounded text-indigo-600" value="public">
+                                    <span class="ml-2">Public</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" class="rounded text-indigo-600" value="private">
+                                    <span class="ml-2">Private</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tuition Range</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="range" id="tuition-range" min="0" max="80000" step="1000" class="w-full">
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>$0</span>
+                                <span id="tuition-value">$40,000</span>
+                                <span>$80,000</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Acceptance Rate</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="range" id="acceptance-range" min="0" max="100" class="w-full">
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0%</span>
+                                <span id="acceptance-value">50%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t">
+                            <h4 class="font-medium text-gray-800 mb-3">Compare Selected</h4>
+                            <div id="compare-list" class="space-y-2">
+                                <!-- Selected colleges for comparison will appear here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t mt-4">
+                        <button id="apply-filters" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg">
+                            Apply Filters
+                        </button>
+                        <button id="reset-filters" class="w-full mt-2 border border-gray-300 hover:bg-gray-50 text-gray-700 py-2 rounded-lg">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div id="notes-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 hidden">
+        <div class="bg-white rounded-lg w-full max-w-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="notes-college-name" class="text-lg font-semibold">College Name</h3>
+                <button id="close-notes" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <textarea id="notes-content" class="w-full h-48 p-3 border rounded-lg notes-textarea" placeholder="Write your personal notes about this college..."></textarea>
+            <div class="flex justify-end mt-4">
+                <button id="save-notes" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
+                    Save Notes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample college data
+        const colleges = [
+            {
+                id: 1,
+                name: "Harvard University",
+                location: "Northeast",
+                type: "private",
+                rank: 1,
+                tuition: 54768,
+                acceptanceRate: 4.6,
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-32">
+                    <rect width="100" height="100" fill="#A51C30"/>
+                    <text x="50" y="55" font-family="serif" font-size="16" fill="white" text-anchor="middle">HARVARD</text>
+                    <text x="50" y="70" font-family="serif" font-size="10" fill="white" text-anchor="middle">UNIVERSITY</text>
+                </svg>`
+            },
+            {
+                id: 2,
+                name: "Stanford University",
+                location: "West",
+                type: "private",
+                rank: 2,
+                tuition: 56169,
+                acceptanceRate: 4.3,
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-32">
+                    <rect width="100" height="100" fill="#8C1515"/>
+                    <text x="50" y="55" font-family="serif" font-size="14" fill="white" text-anchor="middle">STANFORD</text>
+                    <text x="50" y="70" font-family="serif" font-size="10" fill="white" text-anchor="middle">UNIVERSITY</text>
+                </svg>`
+            },
+            {
+                id: 3,
+                name: "MIT",
+                location: "Northeast",
+                type: "private",
+                rank: 3,
+                tuition: 55878,
+                acceptanceRate: 6.7,
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-32">
+                    <rect width="100" height="100" fill="#A31F34"/>
+                    <text x="50" y="60" font-family="serif" font-size="24" fill="white" text-anchor="middle">MIT</text>
+                </svg>`
+            },
+            {
+                id: 4,
+                name: "University of California, Berkeley",
+                location: "West",
+                type: "public",
+                rank: 4,
+                tuition: 43980,
+                acceptanceRate: 14.5,
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-32">
+                    <rect width="100" height="100" fill="#003262"/>
+                    <text x="50" y="50" font-family="serif" font-size="14" fill="white" text-anchor="middle">UC</text>
+                    <text x="50" y="65" font-family="serif" font-size="10" fill="white" text-anchor="middle">BERKELEY</text>
+                </svg>`
+            },
+            {
+                id: 5,
+                name: "University of Michigan",
+                location: "Midwest",
+                type: "public",
+                rank: 5,
+                tuition: 51200,
+                acceptanceRate: 20.2,
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-32">
+                    <rect width="100" height="100" fill="#00274C"/>
+                    <text x="50" y="55" font-family="serif" font-size="12" fill="#FFCB05" text-anchor="middle">MICHIGAN</text>
+                </svg>`
+            },
+            {
+                id: 6,
+                name: "Duke University",
+                location: "South",
+                type: "private",
+                rank: 6,
+                tuition: 60244,
+                acceptanceRate: 7.8,
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-32">
+                    <rect width="100" height="100" fill="#012169"/>
+                    <text x="50" y="55" font-family="serif" font-size="16" fill="white" text-anchor="middle">DUKE</text>
+                </svg>`
+            }
+        ];
+
+        // DOM elements
+        const collegeListEl = document.getElementById('college-list');
+        const filterDrawerEl = document.getElementById('filter-drawer');
+        const filterToggleBtn = document.getElementById('filter-toggle');
+        const closeFilterBtn = document.getElementById('close-filter');
+        const notesModal = document.getElementById('notes-modal');
+        const notesCollegeName = document.getElementById('notes-college-name');
+        const notesContent = document.getElementById('notes-content');
+        const closeNotesBtn = document.getElementById('close-notes');
+        const saveNotesBtn = document.getElementById('save-notes');
+        const sortSelect = document.getElementById('sort');
+        const tuitionRange = document.getElementById('tuition-range');
+        const tuitionValue = document.getElementById('tuition-value');
+        const acceptanceRange = document.getElementById('acceptance-range');
+        const acceptanceValue = document.getElementById('acceptance-value');
+        const applyFiltersBtn = document.getElementById('apply-filters');
+        const resetFiltersBtn = document.getElementById('reset-filters');
+        const locationFilter = document.getElementById('location-filter');
+
+        // State
+        let currentCollegeId = null;
+        let collegeNotes = JSON.parse(localStorage.getItem('collegeNotes')) || {};
+        let filteredColleges = [...colleges];
+        let selectedColleges = [];
+
+        // Initialize
+        renderColleges(colleges);
+        initializeRanges();
+
+        // Event listeners
+        filterToggleBtn.addEventListener('click', toggleFilterDrawer);
+        closeFilterBtn.addEventListener('click', toggleFilterDrawer);
+        closeNotesBtn.addEventListener('click', closeNotesModal);
+        saveNotesBtn.addEventListener('click', saveNotes);
+        sortSelect.addEventListener('change', handleSort);
+        tuitionRange.addEventListener('input', updateTuitionValue);
+        acceptanceRange.addEventListener('input', updateAcceptanceValue);
+        applyFiltersBtn.addEventListener('click', applyFilters);
+        resetFiltersBtn.addEventListener('click', resetFilters);
+
+        // Functions
+        function renderColleges(collegeList) {
+            collegeListEl.innerHTML = '';
+            
+            collegeList.forEach(college => {
+                const hasNotes = collegeNotes[college.id] && collegeNotes[college.id].trim() !== '';
+                
+                const collegeCard = document.createElement('div');
+                collegeCard.className = 'college-card bg-white rounded-xl shadow-md overflow-hidden';
+                collegeCard.innerHTML = `
+                    <div class="relative">
+                        ${college.image}
+                        <div class="absolute top-3 left-3">
+                            <div class="rank-badge bg-white text-indigo-700 shadow-md">
+                                ${college.rank}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-semibold text-lg text-gray-800">${college.name}</h3>
+                            <button class="compare-btn p-1 rounded-full hover:bg-gray-100" data-id="${college.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="mt-2 flex items-center text-sm text-gray-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            ${college.location}
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-2">
+                            <div class="bg-gray-50 p-2 rounded">
+                                <div class="text-xs text-gray-500">Tuition</div>
+                                <div class="font-medium">$${college.tuition.toLocaleString()}</div>
+                            </div>
+                            <div class="bg-gray-50 p-2 rounded">
+                                <div class="text-xs text-gray-500">Acceptance</div>
+                                <div class="font-medium">${college.acceptanceRate}%</div>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex space-x-2">
+                            <button class="notes-btn flex-grow py-2 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center transition-colors" data-id="${college.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                ${hasNotes ? 'View Notes' : 'Add Notes'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                collegeListEl.appendChild(collegeCard);
+                
+                // Add event listeners to the buttons
+                const notesBtn = collegeCard.querySelector('.notes-btn');
+                notesBtn.addEventListener('click', () => openNotesModal(college));
+                
+                const compareBtn = collegeCard.querySelector('.compare-btn');
+                compareBtn.addEventListener('click', () => toggleCompare(college));
+            });
+        }
+
+        function openNotesModal(college) {
+            currentCollegeId = college.id;
+            notesCollegeName.textContent = college.name;
+            notesContent.value = collegeNotes[college.id] || '';
+            notesModal.classList.remove('hidden');
+        }
+
+        function closeNotesModal() {
+            notesModal.classList.add('hidden');
+            currentCollegeId = null;
+        }
+
+        function saveNotes() {
+            if (currentCollegeId) {
+                collegeNotes[currentCollegeId] = notesContent.value;
+                localStorage.setItem('collegeNotes', JSON.stringify(collegeNotes));
+                closeNotesModal();
+                renderColleges(filteredColleges); // Re-render to update "Add Notes" vs "View Notes"
+            }
+        }
+
+        function toggleFilterDrawer() {
+            const isOpen = filterDrawerEl.classList.contains('translate-x-0');
+            
+            if (isOpen) {
+                filterDrawerEl.classList.remove('translate-x-0');
+                filterDrawerEl.classList.add('translate-x-full');
+            } else {
+                filterDrawerEl.classList.remove('translate-x-full');
+                filterDrawerEl.classList.add('translate-x-0');
+            }
+        }
+
+        function handleSort() {
+            const sortBy = sortSelect.value;
+            
+            filteredColleges.sort((a, b) => {
+                if (sortBy === 'name') {
+                    return a.name.localeCompare(b.name);
+                } else if (sortBy === 'acceptance') {
+                    return a.acceptanceRate - b.acceptanceRate;
+                } else if (sortBy === 'tuition') {
+                    return a.tuition - b.tuition;
+                } else {
+                    return a.rank - b.rank;
+                }
+            });
+            
+            renderColleges(filteredColleges);
+        }
+
+        function initializeRanges() {
+            tuitionRange.value = 40000;
+            acceptanceRange.value = 50;
+            updateTuitionValue();
+            updateAcceptanceValue();
+        }
+
+        function updateTuitionValue() {
+            tuitionValue.textContent = `$${parseInt(tuitionRange.value).toLocaleString()}`;
+        }
+
+        function updateAcceptanceValue() {
+            acceptanceValue.textContent = `${acceptanceRange.value}%`;
+        }
+
+        function applyFilters() {
+            const location = locationFilter.value;
+            const maxTuition = parseInt(tuitionRange.value);
+            const maxAcceptance = parseInt(acceptanceRange.value);
+            const typeCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const selectedTypes = Array.from(typeCheckboxes).map(cb => cb.value);
+            
+            filteredColleges = colleges.filter(college => {
+                // Filter by location
+                if (location && college.location !== location) {
+                    return false;
+                }
+                
+                // Filter by type
+                if (selectedTypes.length > 0 && !selectedTypes.includes(college.type)) {
+                    return false;
+                }
+                
+                // Filter by tuition
+                if (college.tuition > maxTuition) {
+                    return false;
+                }
+                
+                // Filter by acceptance rate
+                if (college.acceptanceRate > maxAcceptance) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            renderColleges(filteredColleges);
+            toggleFilterDrawer();
+        }
+
+        function resetFilters() {
+            locationFilter.value = '';
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            initializeRanges();
+            filteredColleges = [...colleges];
+            renderColleges(filteredColleges);
+        }
+
+        function toggleCompare(college) {
+            const index = selectedColleges.findIndex(c => c.id === college.id);
+            
+            if (index === -1) {
+                // Add to comparison
+                if (selectedColleges.length < 3) {
+                    selectedColleges.push(college);
+                } else {
+                    alert('You can compare up to 3 colleges at a time.');
+                    return;
+                }
+            } else {
+                // Remove from comparison
+                selectedColleges.splice(index, 1);
+            }
+            
+            updateCompareList();
+        }
+
+        function updateCompareList() {
+            const compareList = document.getElementById('compare-list');
+            compareList.innerHTML = '';
+            
+            if (selectedColleges.length === 0) {
+                compareList.innerHTML = '<p class="text-gray-500 text-sm">Select colleges to compare</p>';
+                return;
+            }
+            
+            selectedColleges.forEach(college => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center bg-gray-50 p-2 rounded';
+                item.innerHTML = `
+                    <span class="text-sm">${college.name}</span>
+                    <button class="remove-compare text-gray-400 hover:text-gray-600" data-id="${college.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                `;
+                compareList.appendChild(item);
+                
+                const removeBtn = item.querySelector('.remove-compare');
+                removeBtn.addEventListener('click', () => {
+                    const index = selectedColleges.findIndex(c => c.id === college.id);
+                    if (index !== -1) {
+                        selectedColleges.splice(index, 1);
+                        updateCompareList();
+                    }
+                });
+            });
+            
+            if (selectedColleges.length >= 2) {
+                const compareBtn = document.createElement('button');
+                compareBtn.className = 'w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white py-1.5 rounded text-sm';
+                compareBtn.textContent = 'Compare Selected';
+                compareBtn.addEventListener('click', showComparison);
+                compareList.appendChild(compareBtn);
+            }
+        }
+
+        function showComparison() {
+            alert('Comparison feature would show a detailed side-by-side comparison of the selected colleges.');
+            // In a real implementation, this would open a modal or navigate to a comparison page
+        }
+
+        // Initialize compare list
+        updateCompareList();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'947ebd6913092522',t:'MTc0ODYxMzQzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

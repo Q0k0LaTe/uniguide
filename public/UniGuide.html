@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniGuide | 大学申请全能助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #4f46e5;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .active-nav::after {
+            width: 100%;
+        }
+        
+        .custom-shadow {
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.1), 0 10px 10px -5px rgba(79, 70, 229, 0.04);
+        }
+        
+        .calendar-day {
+            transition: all 0.2s ease;
+        }
+        
+        .calendar-day:hover:not(.calendar-day-disabled) {
+            background-color: #ede9fe;
+            color: #4f46e5;
+        }
+        
+        .calendar-day-active {
+            background-color: #4f46e5 !important;
+            color: white !important;
+        }
+        
+        .calendar-day-has-event {
+            position: relative;
+        }
+        
+        .calendar-day-has-event::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background-color: #4f46e5;
+        }
+        
+        .calendar-day-active.calendar-day-has-event::after {
+            background-color: white;
+        }
+        
+        .task-item {
+            transition: all 0.2s ease;
+        }
+        
+        .task-item:hover {
+            background-color: #f9fafb;
+        }
+        
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .animate-delay-100 {
+            animation-delay: 0.1s;
+        }
+        
+        .animate-delay-200 {
+            animation-delay: 0.2s;
+        }
+        
+        .animate-delay-300 {
+            animation-delay: 0.3s;
+        }
+        
+        .animate-delay-400 {
+            animation-delay: 0.4s;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <svg class="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        <span class="ml-2 text-xl font-bold text-gray-900">UniGuide</span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="#" class="nav-link active-nav border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium">首页</a>
+                        <a href="#" class="nav-link border-transparent text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium">大学选择</a>
+                        <a href="#" class="nav-link border-transparent text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium">文书写作</a>
+                        <a href="#" class="nav-link border-transparent text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium">申请日历</a>
+                        <a href="#" class="nav-link border-transparent text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium">AI助手</a>
+                    </div>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                    <button class="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <span class="sr-only">查看通知</span>
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                    </button>
+
+                    <!-- 个人资料下拉菜单 -->
+                    <div class="ml-3 relative">
+                        <div>
+                            <button type="button" class="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="user-menu-button">
+                                <span class="sr-only">打开用户菜单</span>
+                                <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                                    <span class="text-indigo-600 font-bold text-sm">用户</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="-mr-2 flex items-center sm:hidden">
+                    <!-- 移动菜单按钮 -->
+                    <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" id="mobile-menu-button">
+                        <span class="sr-only">打开主菜单</span>
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 移动菜单，默认隐藏 -->
+        <div class="sm:hidden hidden" id="mobile-menu">
+            <div class="pt-2 pb-3 space-y-1">
+                <a href="#" class="bg-indigo-50 border-indigo-500 text-indigo-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">首页</a>
+                <a href="#" class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">大学选择</a>
+                <a href="#" class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">文书写作</a>
+                <a href="#" class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">申请日历</a>
+                <a href="#" class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">AI助手</a>
+            </div>
+            <div class="pt-4 pb-3 border-t border-gray-200">
+                <div class="flex items-center px-4">
+                    <div class="flex-shrink-0">
+                        <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <span class="text-indigo-600 font-bold">用户</span>
+                        </div>
+                    </div>
+                    <div class="ml-3">
+                        <div class="text-base font-medium text-gray-800">张同学</div>
+                        <div class="text-sm font-medium text-gray-500">zhang@example.com</div>
+                    </div>
+                </div>
+                <div class="mt-3 space-y-1">
+                    <a href="#" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">个人资料</a>
+                    <a href="#" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">设置</a>
+                    <a href="#" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">退出登录</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main>
+        <!-- 英雄区域 -->
+        <div class="gradient-bg">
+            <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                    UniGuide 大学申请全能助手
+                </h1>
+                <p class="mt-6 text-xl text-indigo-100 max-w-3xl mx-auto">
+                    集大学选择、文书写作、申请规划于一体的智能平台，让您的大学申请之路更加轻松、高效
+                </p>
+                <div class="mt-10 max-w-sm mx-auto sm:max-w-none sm:flex sm:justify-center">
+                    <div class="space-y-4 sm:space-y-0 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5">
+                        <a href="#" class="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-indigo-700 bg-white hover:bg-indigo-50 sm:px-8">
+                            开始使用
+                        </a>
+                        <a href="#" class="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-500 bg-opacity-60 hover:bg-opacity-70 sm:px-8">
+                            了解更多
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能概览 -->
+        <div class="py-12 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="lg:text-center">
+                    <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">全方位服务</h2>
+                    <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                        一站式大学申请解决方案
+                    </p>
+                    <p class="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+                        UniGuide 为您提供从大学选择、文书写作到申请规划的全流程支持，让您的申请更加高效、有序
+                    </p>
+                </div>
+
+                <div class="mt-10">
+                    <dl class="space-y-10 md:space-y-0 md:grid md:grid-cols-3 md:gap-x-8 md:gap-y-10">
+                        <div class="feature-card relative bg-white p-6 rounded-xl shadow-md">
+                            <dt>
+                                <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                    </svg>
+                                </div>
+                                <p class="ml-16 text-lg leading-6 font-medium text-gray-900">智能大学选择</p>
+                            </dt>
+                            <dd class="mt-2 ml-16 text-base text-gray-500">
+                                基于您的学术背景、兴趣爱好和职业规划，智能匹配最适合您的大学和专业，提供详细的院校信息和录取概率分析。
+                            </dd>
+                            <div class="mt-4 ml-16">
+                                <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    开始匹配 <span aria-hidden="true">&rarr;</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="feature-card relative bg-white p-6 rounded-xl shadow-md">
+                            <dt>
+                                <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </div>
+                                <p class="ml-16 text-lg leading-6 font-medium text-gray-900">AI文书助手</p>
+                            </dt>
+                            <dd class="mt-2 ml-16 text-base text-gray-500">
+                                提供个性化文书写作指导，包括选题建议、结构优化和语言润色，帮助您创作出独特而有力的申请文书。
+                            </dd>
+                            <div class="mt-4 ml-16">
+                                <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    开始写作 <span aria-hidden="true">&rarr;</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="feature-card relative bg-white p-6 rounded-xl shadow-md">
+                            <dt>
+                                <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                <p class="ml-16 text-lg leading-6 font-medium text-gray-900">智能申请日历</p>
+                            </dt>
+                            <dd class="mt-2 ml-16 text-base text-gray-500">
+                                自动生成个性化申请时间表，设置关键节点提醒，确保您不会错过任何重要截止日期，让申请过程有条不紊。
+                            </dd>
+                            <div class="mt-4 ml-16">
+                                <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    规划日程 <span aria-hidden="true">&rarr;</span>
+                                </a>
+                            </div>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- 仪表盘预览 -->
+        <div class="py-12 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">个性化仪表盘</h2>
+                    <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                        全面掌控您的申请进度
+                    </p>
+                    <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                        实时追踪申请状态，查看任务完成情况，让您的大学申请之旅一目了然
+                    </p>
+                </div>
+
+                <!-- 仪表盘预览卡片 -->
+                <div class="mt-10 bg-white rounded-lg shadow-xl overflow-hidden">
+                    <div class="px-6 py-8 bg-white sm:p-10 sm:pb-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <!-- 左侧：申请进度 -->
+                            <div class="animate-fade-in opacity-0">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 flex items-center">
+                                    <svg class="h-5 w-5 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                    申请进度
+                                </h3>
+                                <div class="mt-5 space-y-6">
+                                    <div>
+                                        <div class="flex justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-700">大学选择</span>
+                                            <span class="text-sm font-medium text-gray-700">100%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-green-500 h-2 rounded-full" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-700">文书写作</span>
+                                            <span class="text-sm font-medium text-gray-700">65%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-indigo-500 h-2 rounded-full" style="width: 65%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-700">推荐信</span>
+                                            <span class="text-sm font-medium text-gray-700">30%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-yellow-500 h-2 rounded-full" style="width: 30%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-700">材料准备</span>
+                                            <span class="text-sm font-medium text-gray-700">45%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-indigo-500 h-2 rounded-full" style="width: 45%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-700">总体进度</span>
+                                            <span class="text-sm font-medium text-gray-700">60%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-indigo-500 h-2 rounded-full" style="width: 60%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                    <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                        查看详细进度 <span aria-hidden="true">&rarr;</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- 中间：申请日历 -->
+                            <div class="animate-fade-in opacity-0 animate-delay-200">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 flex items-center">
+                                    <svg class="h-5 w-5 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    申请日历
+                                </h3>
+                                <div class="mt-5">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h4 class="text-sm font-medium text-gray-500">2023年10月</h4>
+                                        <div class="flex space-x-1">
+                                            <button class="p-1 rounded-full hover:bg-gray-100">
+                                                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                                </svg>
+                                            </button>
+                                            <button class="p-1 rounded-full hover:bg-gray-100">
+                                                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                                        <div class="text-gray-500 font-medium py-1">日</div>
+                                        <div class="text-gray-500 font-medium py-1">一</div>
+                                        <div class="text-gray-500 font-medium py-1">二</div>
+                                        <div class="text-gray-500 font-medium py-1">三</div>
+                                        <div class="text-gray-500 font-medium py-1">四</div>
+                                        <div class="text-gray-500 font-medium py-1">五</div>
+                                        <div class="text-gray-500 font-medium py-1">六</div>
+                                        
+                                        <div class="calendar-day calendar-day-disabled text-gray-300 py-1">24</div>
+                                        <div class="calendar-day calendar-day-disabled text-gray-300 py-1">25</div>
+                                        <div class="calendar-day calendar-day-disabled text-gray-300 py-1">26</div>
+                                        <div class="calendar-day calendar-day-disabled text-gray-300 py-1">27</div>
+                                        <div class="calendar-day calendar-day-disabled text-gray-300 py-1">28</div>
+                                        <div class="calendar-day calendar-day-disabled text-gray-300 py-1">29</div>
+                                        <div class="calendar-day calendar-day-disabled text-gray-300 py-1">30</div>
+                                        
+                                        <div class="calendar-day py-1 rounded-full">1</div>
+                                        <div class="calendar-day py-1 rounded-full">2</div>
+                                        <div class="calendar-day py-1 rounded-full">3</div>
+                                        <div class="calendar-day py-1 rounded-full">4</div>
+                                        <div class="calendar-day py-1 rounded-full">5</div>
+                                        <div class="calendar-day py-1 rounded-full">6</div>
+                                        <div class="calendar-day py-1 rounded-full">7</div>
+                                        
+                                        <div class="calendar-day py-1 rounded-full">8</div>
+                                        <div class="calendar-day py-1 rounded-full">9</div>
+                                        <div class="calendar-day calendar-day-has-event py-1 rounded-full">10</div>
+                                        <div class="calendar-day py-1 rounded-full">11</div>
+                                        <div class="calendar-day py-1 rounded-full">12</div>
+                                        <div class="calendar-day calendar-day-has-event py-1 rounded-full">13</div>
+                                        <div class="calendar-day py-1 rounded-full">14</div>
+                                        
+                                        <div class="calendar-day calendar-day-active py-1 rounded-full">15</div>
+                                        <div class="calendar-day calendar-day-has-event py-1 rounded-full">16</div>
+                                        <div class="calendar-day py-1 rounded-full">17</div>
+                                        <div class="calendar-day py-1 rounded-full">18</div>
+                                        <div class="calendar-day py-1 rounded-full">19</div>
+                                        <div class="calendar-day py-1 rounded-full">20</div>
+                                        <div class="calendar-day py-1 rounded-full">21</div>
+                                        
+                                        <div class="calendar-day py-1 rounded-full">22</div>
+                                        <div class="calendar-day py-1 rounded-full">23</div>
+                                        <div class="calendar-day calendar-day-has-event py-1 rounded-full">24</div>
+                                        <div class="calendar-day py-1 rounded-full">25</div>
+                                        <div class="calendar-day py-1 rounded-full">26</div>
+                                        <div class="calendar-day py-1 rounded-full">27</div>
+                                        <div class="calendar-day py-1 rounded-full">28</div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 space-y-3">
+                                    <div class="flex items-center text-sm">
+                                        <div class="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                                        <span class="text-gray-700">10月16日 - 早申请截止日</span>
+                                    </div>
+                                    <div class="flex items-center text-sm">
+                                        <div class="w-2 h-2 bg-indigo-500 rounded-full mr-2"></div>
+                                        <span class="text-gray-700">10月24日 - 文书初稿完成</span>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                        查看完整日历 <span aria-hidden="true">&rarr;</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- 右侧：待办任务 -->
+                            <div class="animate-fade-in opacity-0 animate-delay-400">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 flex items-center">
+                                    <svg class="h-5 w-5 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                    </svg>
+                                    待办任务
+                                </h3>
+                                <div class="mt-5 space-y-2">
+                                    <div class="task-item flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                            <span class="ml-3 text-sm text-gray-700">完成哈佛大学文书初稿</span>
+                                        </div>
+                                        <span class="text-xs text-red-500 font-medium">今天</span>
+                                    </div>
+                                    <div class="task-item flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                            <span class="ml-3 text-sm text-gray-700">联系王教授索要推荐信</span>
+                                        </div>
+                                        <span class="text-xs text-orange-500 font-medium">明天</span>
+                                    </div>
+                                    <div class="task-item flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                            <span class="ml-3 text-sm text-gray-700">准备托福考试</span>
+                                        </div>
+                                        <span class="text-xs text-gray-500 font-medium">3天后</span>
+                                    </div>
+                                    <div class="task-item flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                            <span class="ml-3 text-sm text-gray-700">完成活动经历表格</span>
+                                        </div>
+                                        <span class="text-xs text-gray-500 font-medium">5天后</span>
+                                    </div>
+                                    <div class="task-item flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                            <span class="ml-3 text-sm text-gray-700">复习SAT数学部分</span>
+                                        </div>
+                                        <span class="text-xs text-gray-500 font-medium">1周后</span>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                        查看所有任务 <span aria-hidden="true">&rarr;</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 三大核心功能详细介绍 -->
+        <div class="py-16 bg-white overflow-hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- 大学选择功能 -->
+                <div class="relative">
+                    <div class="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
+                        <div class="relative">
+                            <h3 class="text-2xl font-extrabold text-gray-900 tracking-tight sm:text-3xl">
+                                智能大学匹配系统
+                            </h3>
+                            <p class="mt-3 text-lg text-gray-500">
+                                基于您的学术成绩、兴趣爱好、职业规划和个人偏好，我们的AI系统将为您推荐最适合的大学和专业。
+                            </p>
+
+                            <dl class="mt-10 space-y-10">
+                                <div class="relative">
+                                    <dt>
+                                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="ml-16 text-lg leading-6 font-medium text-gray-900">精准匹配算法</p>
+                                    </dt>
+                                    <dd class="mt-2 ml-16 text-base text-gray-500">
+                                        综合考虑录取率、学术实力、地理位置、校园文化等多维因素，为您找到最匹配的大学。
+                                    </dd>
+                                </div>
+
+                                <div class="relative">
+                                    <dt>
+                                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="ml-16 text-lg leading-6 font-medium text-gray-900">录取概率分析</p>
+                                    </dt>
+                                    <dd class="mt-2 ml-16 text-base text-gray-500">
+                                        基于历史录取数据和您的个人情况，科学评估您被各大学录取的可能性，帮助您合理规划申请策略。
+                                    </dd>
+                                </div>
+
+                                <div class="relative">
+                                    <dt>
+                                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="ml-16 text-lg leading-6 font-medium text-gray-900">院校详细资料库</p>
+                                    </dt>
+                                    <dd class="mt-2 ml-16 text-base text-gray-500">
+                                        提供全面的大学信息，包括专业设置、师资力量、校园环境、就业前景和校友评价，帮助您做出明智选择。
+                                    </dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <div class="mt-10 -mx-4 relative lg:mt-0">
+                            <div class="relative mx-auto rounded-lg shadow-lg overflow-hidden">
+                                <img class="relative mx-auto" width="490" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='490' height='360' viewBox='0 0 490 360' fill='none'%3E%3Crect width='490' height='360' fill='%23F9FAFB'/%3E%3Crect x='40' y='30' width='410' height='300' rx='8' fill='white' stroke='%23E5E7EB'/%3E%3Crect x='60' y='50' width='180' height='16' rx='4' fill='%234F46E5'/%3E%3Crect x='60' y='76' width='300' height='8' rx='4' fill='%23E5E7EB'/%3E%3Crect x='60' y='92' width='250' height='8' rx='4' fill='%23E5E7EB'/%3E%3Crect x='60' y='120' width='370' height='80' rx='4' fill='%23F3F4F6'/%3E%3Ccircle cx='90' cy='140' r='16' fill='%234F46E5'/%3E%3Crect x='116' y='132' width='80' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='116' y='148' width='120' height='8' rx='4' fill='%239CA3AF'/%3E%3Ccircle cx='90' cy='180' r='16' fill='%234F46E5'/%3E%3Crect x='116' y='172' width='80' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='116' y='188' width='120' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='60' y='220' width='370' height='90' rx='4' fill='%23F3F4F6'/%3E%3Crect x='80' y='240' width='100' height='50' rx='4' fill='white' stroke='%23E5E7EB'/%3E%3Crect x='200' y='240' width='100' height='50' rx='4' fill='white' stroke='%23E5E7EB'/%3E%3Crect x='320' y='240' width='100' height='50' rx='4' fill='white' stroke='%23E5E7EB'/%3E%3Crect x='90' y='250' width='80' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='90' y='266' width='60' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='210' y='250' width='80' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='210' y='266' width='60' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='330' y='250' width='80' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='330' y='266' width='60' height='8' rx='4' fill='%239CA3AF'/%3E%3C/svg%3E" alt="大学选择界面预览">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative mt-20">
+                    <div class="lg:grid lg:grid-flow-row-dense lg:grid-cols-2 lg:gap-8 lg:items-center">
+                        <div class="lg:col-start-2">
+                            <h3 class="text-2xl font-extrabold text-gray-900 tracking-tight sm:text-3xl">
+                                AI文书写作助手
+                            </h3>
+                            <p class="mt-3 text-lg text-gray-500">
+                                从选题构思到文章润色，我们的AI文书助手将全程指导您创作出独特而有力的申请文书，展现您的优势和潜力。
+                            </p>
+
+                            <dl class="mt-10 space-y-10">
+                                <div class="relative">
+                                    <dt>
+                                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="ml-16 text-lg leading-6 font-medium text-gray-900">个性化选题建议</p>
+                                    </dt>
+                                    <dd class="mt-2 ml-16 text-base text-gray-500">
+                                        基于您的经历和目标院校的偏好，推荐最能展现您独特价值的文书主题和角度。
+                                    </dd>
+                                </div>
+
+                                <div class="relative">
+                                    <dt>
+                                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="ml-16 text-lg leading-6 font-medium text-gray-900">结构优化与内容建议</p>
+                                    </dt>
+                                    <dd class="mt-2 ml-16 text-base text-gray-500">
+                                        提供专业的文章结构建议和内容优化方案，确保您的文书逻辑清晰、重点突出、引人入胜。
+                                    </dd>
+                                </div>
+
+                                <div class="relative">
+                                    <dt>
+                                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="ml-16 text-lg leading-6 font-medium text-gray-900">语言润色与修改建议</p>
+                                    </dt>
+                                    <dd class="mt-2 ml-16 text-base text-gray-500">
+                                        智能分析文章语言，提供精准的修改建议，帮助您打造语言流畅、表达准确、富有感染力的文书。
+                                    </dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <div class="mt-10 -mx-4 relative lg:mt-0 lg:col-start-1">
+                            <div class="relative mx-auto rounded-lg shadow-lg overflow-hidden">
+                                <img class="relative mx-auto" width="490" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='490' height='360' viewBox='0 0 490 360' fill='none'%3E%3Crect width='490' height='360' fill='%23F9FAFB'/%3E%3Crect x='40' y='30' width='410' height='300' rx='8' fill='white' stroke='%23E5E7EB'/%3E%3Crect x='60' y='50' width='180' height='16' rx='4' fill='%234F46E5'/%3E%3Crect x='60' y='76' width='300' height='8' rx='4' fill='%23E5E7EB'/%3E%3Crect x='60' y='100' width='370' height='140' rx='4' fill='%23F3F4F6'/%3E%3Crect x='80' y='120' width='330' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='80' y='136' width='330' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='80' y='152' width='330' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='80' y='168' width='250' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='80' y='184' width='330' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='80' y='200' width='200' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='80' y='216' width='150' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='60' y='260' width='370' height='50' rx='4' fill='%23F3F4F6'/%3E%3Crect x='80' y='275' width='80' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='80' y='291' width='60' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='180' y='275' width='80' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='180' y='291' width='60' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='280' y='275' width='80' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='280' y='291' width='60' height='8' rx='4' fill='%239CA3AF'/%3E%3C/svg%3E" alt="文书写作界面预览">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative mt-20">
+                    <div class="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
+                        <div class="relative">
+                            <h3 class="text-2xl font-extrabold text-gray-900 tracking-tight sm:text-3xl">
+                                智能申请日历
+                            </h3>
+                            <p class="mt-3 text-lg text-gray-500">
+                                根据您的申请计划和目标院校的截止日期，自动生成个性化的申请时间表，确保您不会错过任何重要节点。
+                            </p>
+
+                            <dl class="mt-10 space-y-10">
+                                <div class="relative">
+                                    <dt>
+                                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="ml-16 text-lg leading-6 font-medium text-gray-900">个性化时间规划</p>
+                                    </dt>
+                                    <dd class="mt-2 ml-16 text-base text-gray-500">
+                                        根据您的学业安排和申请目标，智能生成最优申请时间表，合理分配各项任务的时间。
+                                    </dd>
+                                </div>
+
+                                <div class="relative">
+                                    <dt>
+                                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="ml-16 text-lg leading-6 font-medium text-gray-900">智能提醒系统</p>
+                                    </dt>
+                                    <dd class="mt-2 ml-16 text-base text-gray-500">
+                                        设置关键节点提醒，通过邮件、短信或应用通知，确保您不会错过任何重要的申请截止日期和任务。
+                                    </dd>
+                                </div>
+
+                                <div class="relative">
+                                    <dt>
+                                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="ml-16 text-lg leading-6 font-medium text-gray-900">任务分解与进度追踪</p>
+                                    </dt>
+                                    <dd class="mt-2 ml-16 text-base text-gray-500">
+                                        将申请过程分解为具体可执行的任务，实时追踪完成进度，帮助您有条不紊地推进申请工作。
+                                    </dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <div class="mt-10 -mx-4 relative lg:mt-0">
+                            <div class="relative mx-auto rounded-lg shadow-lg overflow-hidden">
+                                <img class="relative mx-auto" width="490" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='490' height='360' viewBox='0 0 490 360' fill='none'%3E%3Crect width='490' height='360' fill='%23F9FAFB'/%3E%3Crect x='40' y='30' width='410' height='300' rx='8' fill='white' stroke='%23E5E7EB'/%3E%3Crect x='60' y='50' width='180' height='16' rx='4' fill='%234F46E5'/%3E%3Crect x='60' y='76' width='300' height='8' rx='4' fill='%23E5E7EB'/%3E%3Crect x='60' y='100' width='370' height='210' rx='4' fill='%23F3F4F6'/%3E%3Crect x='80' y='120' width='80' height='80' rx='4' fill='white' stroke='%23E5E7EB'/%3E%3Crect x='90' y='130' width='60' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='90' y='146' width='40' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='90' y='170' width='60' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='90' y='186' width='40' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='180' y='120' width='80' height='80' rx='4' fill='white' stroke='%23E5E7EB'/%3E%3Crect x='190' y='130' width='60' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='190' y='146' width='40' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='190' y='170' width='60' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='190' y='186' width='40' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='280' y='120' width='80' height='80' rx='4' fill='white' stroke='%23E5E7EB'/%3E%3Crect x='290' y='130' width='60' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='290' y='146' width='40' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='290' y='170' width='60' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='290' y='186' width='40' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='80' y='220' width='80' height='80' rx='4' fill='white' stroke='%23E5E7EB'/%3E%3Crect x='90' y='230' width='60' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='90' y='246' width='40' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='90' y='270' width='60' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='90' y='286' width='40' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='180' y='220' width='80' height='80' rx='4' fill='white' stroke='%23E5E7EB'/%3E%3Crect x='190' y='230' width='60' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='190' y='246' width='40' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='190' y='270' width='60' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='190' y='286' width='40' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='280' y='220' width='80' height='80' rx='4' fill='white' stroke='%23E5E7EB'/%3E%3Crect x='290' y='230' width='60' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='290' y='246' width='40' height='8' rx='4' fill='%239CA3AF'/%3E%3Crect x='290' y='270' width='60' height='8' rx='4' fill='%236B7280'/%3E%3Crect x='290' y='286' width='40' height='8' rx='4' fill='%239CA3AF'/%3E%3C/svg%3E" alt="申请日历界面预览">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户评价 -->
+        <div class="bg-indigo-50 py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">用户心声</h2>
+                    <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                        他们是如何评价 UniGuide 的
+                    </p>
+                    <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                        来自全国各地的学生分享了他们使用 UniGuide 的成功经验
+                    </p>
+                </div>
+
+                <div class="mt-12">
+                    <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                            <div class="px-6 py-8">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                            <span class="text-indigo-600 font-bold">李</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-lg font-medium text-gray-900">李同学</h3>
+                                        <p class="text-sm text-gray-500">北京市 | 成功申请麻省理工大学</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-gray-500">
+                                    <p class="text-base">
+                                        "UniGuide 的智能匹配系统帮我找到了最适合我的大学和专业。AI文书助手的指导让我的个人陈述脱颖而出，最终收到了梦校的录取通知书！"
+                                    </p>
+                                </div>
+                                <div class="mt-4 flex">
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                            <div class="px-6 py-8">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                            <span class="text-indigo-600 font-bold">王</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-lg font-medium text-gray-900">王同学</h3>
+                                        <p class="text-sm text-gray-500">上海市 | 成功申请哈佛大学</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-gray-500">
+                                    <p class="text-base">
+                                        "UniGuide的申请日历功能太棒了！它帮我规划了所有重要截止日期，让我不再焦虑。各项任务清晰明了，让我的申请过程井井有条。"
+                                    </p>
+                                </div>
+                                <div class="mt-4 flex">
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <svg class="h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                            <div class="px-6 py-8">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                            <span class="text-indigo-600 font-bold">张</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-lg font-medium text-gray-900">张同学</h3>
+                                        <p class="text-sm text-gray-500">广东省 | 成功申请香港大学</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-gray-500">
+                                    <p class="text-base">
+                                        "感谢UniGuide提供的全面院校信息和录取概率分析，让我对自己的定位更加清晰，最终选择了最适合自己的学校和专业。"
+                                    </p>
+                                </div>
+                                <div class="mt-4 flex">
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 号召行动 -->
+        <div class="bg-white">
+            <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+                <div class="gradient-bg rounded-lg shadow-xl overflow-hidden lg:grid lg:grid-cols-2 lg:gap-4">
+                    <div class="pt-10 pb-12 px-6 sm:pt-16 sm:px-16 lg:py-16 lg:pr-0 xl:py-20 xl:px-20">
+                        <div class="lg:self-center">
+                            <h2 class="text-3xl font-extrabold text-white sm:text-4xl">
+                                <span class="block">准备好开启您的申请之旅了吗？</span>
+                            </h2>
+                            <p class="mt-4 text-lg leading-6 text-indigo-200">
+                                立即注册 UniGuide，体验智能化的大学申请服务，让您的梦想触手可及。
+                            </p>
+                            <a href="#" class="mt-8 bg-white border border-transparent rounded-md shadow px-6 py-3 inline-flex items-center text-base font-medium text-indigo-600 hover:bg-indigo-50">
+                                免费注册
+                            </a>
+                        </div>
+                    </div>
+                    <div class="-mt-6 aspect-w-5 aspect-h-3 md:aspect-w-2 md:aspect-h-1">
+                        <img class="transform translate-x-6 translate-y-6 rounded-md object-cover object-left-top sm:translate-x-16 lg:translate-y-20" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='420' viewBox='0 0 560 420' fill='none'%3E%3Crect width='560' height='420' fill='%23E0E7FF'/%3E%3Crect x='60' y='40' width='440' height='340' rx='8' fill='white' stroke='%23C7D2FE'/%3E%3Crect x='100' y='80' width='180' height='20' rx='4' fill='%234F46E5'/%3E%3Crect x='100' y='120' width='360' height='10' rx='5' fill='%23A5B4FC'/%3E%3Crect x='100' y='140' width='300' height='10' rx='5' fill='%23A5B4FC'/%3E%3Crect x='100' y='180' width='120' height='40' rx='4' fill='%234F46E5'/%3E%3Crect x='240' y='180' width='120' height='40' rx='4' fill='%23C7D2FE'/%3E%3Crect x='100' y='250' width='360' height='100' rx='4' fill='%23F3F4F6'/%3E%3Ccircle cx='130' cy='280' r='10' fill='%234F46E5'/%3E%3Crect x='150' y='275' width='100' height='10' rx='5' fill='%23A5B4FC'/%3E%3Ccircle cx='130' cy='310' r='10' fill='%23C7D2FE'/%3E%3Crect x='150' y='305' width='150' height='10' rx='5' fill='%23A5B4FC'/%3E%3C/svg%3E" alt="App screenshot">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex justify-center space-x-6 md:order-2">
+                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                        <span class="sr-only">Facebook</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                        <span class="sr-only">Instagram</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M12.315 2.014a.5.5 0 01.37.198l1.54 1.54a.5.5 0 01.197.37V6.5h3.293a.5.5 0 01.353.146l1.54 1.54a.5.5 0 01.146.353v3.293h2.372a.5.5 0 01.37.198l1.54 1.54a.5.5 0 01.197.37v3.293a.5.5 0 01-.146.353l-1.54 1.54a.5.5 0 01-.353.146H16.5v2.372a.5.5 0 01-.198.37l-1.54 1.54a.5.5 0 01-.37.197h-3.293a.5.5 0 01-.353-.146l-1.54-1.54a.5.5 0 01-.146-.353V17.5H6.707a.5.5 0 01-.353-.146l-1.54-1.54a.5.5 0 01-.146-.353v-3.293H2.628a.5.5 0 01-.37-.198l-1.54-1.54a.5.5 0 01-.197-.37V6.707a.5.5 0 01.146-.353l1.54-1.54a.5.5 0 01.353-.146H6.5V2.628a.5.5 0 01.198-.37l1.54-1.54a.5.5 0 01.37-.197h3.293zM12 16c-2.206 0-4-1.794-4-4s1.794-4 4-4 4 1.794 4 4-1.794 4-4 4zm0-6a2 2 0 100 4 2 2 0 000-4z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                        <span class="sr-only">Twitter</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                        </svg>
+                    </a>
+                </div>
+                <div class="mt-8 md:mt-0 md:order-1">
+                    <p class="text-center text-base text-gray-400">
+                        &copy; 2025 UniGuide. 保留所有权利.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 移动菜单切换
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // 导航链接激活状态 (示例，实际应用中可能需要更复杂的逻辑)
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                // 阻止默认行为，实际项目中根据路由或页面跳转处理
+                // e.preventDefault(); 
+                navLinks.forEach(l => l.classList.remove('active-nav'));
+                link.classList.add('active-nav');
+
+                // 移动端点击后收起菜单
+                if (!mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        });
+        
+        // 模拟仪表盘动画，当元素进入视口时触发
+        const animatedElements = document.querySelectorAll('.animate-fade-in');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        animatedElements.forEach(el => {
+            observer.observe(el);
+        });
+
+    </script>
+</body>
+</html>

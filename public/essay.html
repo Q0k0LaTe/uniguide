@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Essay Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Include Quill rich text editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        
+        .ql-editor {
+            min-height: 300px;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .ql-toolbar.ql-snow {
+            border-top-left-radius: 0.375rem;
+            border-top-right-radius: 0.375rem;
+            border-color: #e2e8f0;
+        }
+        
+        .ql-container.ql-snow {
+            border-bottom-left-radius: 0.375rem;
+            border-bottom-right-radius: 0.375rem;
+            border-color: #e2e8f0;
+        }
+        
+        .essay-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .essay-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .version-item {
+            transition: background-color 0.2s;
+        }
+        
+        .version-item:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .version-item.active {
+            background-color: #e0e7ff;
+            border-color: #818cf8;
+        }
+        
+        .outline-item {
+            transition: background-color 0.2s;
+        }
+        
+        .outline-item:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .upload-zone {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.2s;
+        }
+        
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #818cf8;
+            background-color: #f5f7ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-indigo-700 text-white shadow-md">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <h1 class="text-2xl font-bold">College Essay Editor</h1>
+                <div class="flex items-center space-x-3">
+                    <button id="save-btn" class="bg-white text-indigo-700 hover:bg-indigo-50 px-4 py-2 rounded-lg font-medium">
+                        Save
+                    </button>
+                    <div class="relative" id="user-menu">
+                        <button class="flex items-center space-x-1">
+                            <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                                <span class="font-medium">JS</span>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-grow flex flex-col md:flex-row">
+            <!-- Left Sidebar - Essay Selection -->
+            <div class="w-full md:w-64 bg-white border-r border-gray-200 p-4 overflow-y-auto">
+                <div class="mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-2">My Essays</h2>
+                    <div class="relative">
+                        <input type="text" placeholder="Search essays..." class="w-full pl-8 pr-3 py-2 border rounded-lg text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="essay-card bg-indigo-50 border border-indigo-200 rounded-lg p-3 cursor-pointer" data-id="1">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-medium text-indigo-800">Harvard - Why Us?</h3>
+                            <span class="text-xs bg-indigo-200 text-indigo-800 px-2 py-0.5 rounded">Common App</span>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1">Last edited: Today, 2:30 PM</p>
+                        <div class="mt-2 text-xs text-gray-500 line-clamp-2">
+                            Harvard's commitment to academic excellence and diverse community...
+                        </div>
+                    </div>
+
+                    <div class="essay-card bg-white border border-gray-200 rounded-lg p-3 cursor-pointer" data-id="2">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-medium text-gray-800">Stanford - Intellectual Vitality</h3>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Supplemental</span>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1">Last edited: Yesterday, 4:15 PM</p>
+                        <div class="mt-2 text-xs text-gray-500 line-clamp-2">
+                            My passion for quantum computing began when I first read about...
+                        </div>
+                    </div>
+
+                    <div class="essay-card bg-white border border-gray-200 rounded-lg p-3 cursor-pointer" data-id="3">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-medium text-gray-800">MIT - Community Contribution</h3>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Supplemental</span>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1">Last edited: 3 days ago</p>
+                        <div class="mt-2 text-xs text-gray-500 line-clamp-2">
+                            Through my work with the robotics team, I've learned the value of...
+                        </div>
+                    </div>
+
+                    <div class="essay-card bg-white border border-gray-200 rounded-lg p-3 cursor-pointer" data-id="4">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-medium text-gray-800">Personal Statement</h3>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Common App</span>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1">Last edited: 1 week ago</p>
+                        <div class="mt-2 text-xs text-gray-500 line-clamp-2">
+                            The sound of the buzzer still echoes in my mind. With ten seconds left...
+                        </div>
+                    </div>
+
+                    <button class="w-full flex items-center justify-center space-x-1 text-indigo-600 hover:text-indigo-800 text-sm font-medium py-2 border border-dashed border-indigo-300 rounded-lg hover:bg-indigo-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>New Essay</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Editor Area -->
+            <div class="flex-grow p-4 md:p-6 overflow-y-auto">
+                <div class="max-w-4xl mx-auto">
+                    <!-- Essay Header -->
+                    <div class="mb-6">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-800">Harvard - Why Us?</h2>
+                                <p class="text-gray-600 mt-1">Common App • 650 words maximum</p>
+                            </div>
+                            <div class="mt-3 sm:mt-0 flex items-center space-x-2">
+                                <span class="text-sm text-gray-500" id="word-count">0 words</span>
+                                <button id="ai-assist-btn" class="flex items-center space-x-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm hover:from-purple-700 hover:to-indigo-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    <span>AI Assist</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                            <h3 class="text-sm font-medium text-amber-800">Prompt</h3>
+                            <p class="text-sm text-amber-700 mt-1">Please write an essay explaining why you wish to attend Harvard University and how you would contribute to our community. (500 words maximum)</p>
+                        </div>
+                    </div>
+
+                    <!-- Rich Text Editor -->
+                    <div class="mb-6">
+                        <div id="editor"></div>
+                    </div>
+
+                    <!-- Upload Zone -->
+                    <div class="mb-6">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">Upload Draft</h3>
+                        <div id="upload-zone" class="upload-zone rounded-lg p-6 flex flex-col items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p class="text-sm text-gray-600 mb-1">Drag & drop your file here or</p>
+                            <label class="cursor-pointer text-indigo-600 hover:text-indigo-800 font-medium">
+                                <span>Browse files</span>
+                                <input type="file" class="hidden" accept=".docx,.pdf">
+                            </label>
+                            <p class="text-xs text-gray-500 mt-1">Supports DOCX and PDF</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar - Tools -->
+            <div class="w-full md:w-72 bg-white border-l border-gray-200 overflow-y-auto">
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-200">
+                    <button class="tab-btn flex-1 py-3 text-center text-sm font-medium border-b-2 border-indigo-600 text-indigo-600">Versions</button>
+                    <button class="tab-btn flex-1 py-3 text-center text-sm font-medium text-gray-500 hover:text-gray-700">Outline</button>
+                </div>
+
+                <!-- Versions Panel -->
+                <div id="versions-panel" class="p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-medium text-gray-800">Version History</h3>
+                        <button class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Save New Version</button>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="version-item active border rounded-lg p-3">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Current Draft</h4>
+                                    <p class="text-xs text-gray-500">Today, 2:30 PM</p>
+                                </div>
+                                <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded">Current</span>
+                            </div>
+                        </div>
+
+                        <div class="version-item border rounded-lg p-3">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Draft 2</h4>
+                                    <p class="text-xs text-gray-500">Today, 11:45 AM</p>
+                                </div>
+                                <button class="text-xs text-gray-500 hover:text-gray-700">Restore</button>
+                            </div>
+                        </div>
+
+                        <div class="version-item border rounded-lg p-3">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-medium text-gray-800">First Draft</h4>
+                                    <p class="text-xs text-gray-500">Yesterday, 3:20 PM</p>
+                                </div>
+                                <button class="text-xs text-gray-500 hover:text-gray-700">Restore</button>
+                            </div>
+                        </div>
+
+                        <div class="version-item border rounded-lg p-3">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Initial Outline</h4>
+                                    <p class="text-xs text-gray-500">3 days ago</p>
+                                </div>
+                                <button class="text-xs text-gray-500 hover:text-gray-700">Restore</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Outline Panel (hidden by default) -->
+                <div id="outline-panel" class="p-4 hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-medium text-gray-800">Essay Outline</h3>
+                        <button id="generate-outline-btn" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13l-7 7-7-7m14-8l-7 7-7-7" />
+                            </svg>
+                            Generate
+                        </button>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="outline-item border rounded-lg p-3">
+                            <h4 class="font-medium text-gray-800">Introduction</h4>
+                            <p class="text-xs text-gray-600 mt-1">Hook with personal anecdote about research interest</p>
+                        </div>
+
+                        <div class="outline-item border rounded-lg p-3">
+                            <h4 class="font-medium text-gray-800">Academic Interests</h4>
+                            <p class="text-xs text-gray-600 mt-1">Specific Harvard programs and professors in your field</p>
+                        </div>
+
+                        <div class="outline-item border rounded-lg p-3">
+                            <h4 class="font-medium text-gray-800">Extracurricular Fit</h4>
+                            <p class="text-xs text-gray-600 mt-1">How you'll contribute to campus organizations</p>
+                        </div>
+
+                        <div class="outline-item border rounded-lg p-3">
+                            <h4 class="font-medium text-gray-800">Community Values</h4>
+                            <p class="text-xs text-gray-600 mt-1">Alignment with Harvard's mission and values</p>
+                        </div>
+
+                        <div class="outline-item border rounded-lg p-3">
+                            <h4 class="font-medium text-gray-800">Conclusion</h4>
+                            <p class="text-xs text-gray-600 mt-1">Future vision and lasting impact</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Assistant Modal -->
+    <div id="ai-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl w-full max-w-2xl p-6 max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">AI Writing Assistant</h3>
+                <button id="close-ai-modal" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex space-x-2">
+                    <button class="ai-action-btn bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg text-sm flex-1">Generate Outline</button>
+                    <button class="ai-action-btn bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg text-sm flex-1">Improve Writing</button>
+                    <button class="ai-action-btn bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg text-sm flex-1">Check Grammar</button>
+                </div>
+
+                <div class="border-t border-gray-200 pt-4">
+                    <h4 class="font-medium text-gray-700 mb-2">Custom Assistance</h4>
+                    <div class="flex">
+                        <input type="text" placeholder="Ask for specific help with your essay..." class="flex-grow border rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-r-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-4 mt-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-center text-white flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-gray-800">Suggested Improvements</h5>
+                            <p class="text-sm text-gray-600 mt-1">
+                                Your introduction effectively mentions Harvard's academic reputation, but could be strengthened by adding a specific personal connection. Consider mentioning a particular professor's research or a specific program that aligns with your interests.
+                            </p>
+                            <div class="mt-3 flex space-x-2">
+                                <button class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded">Apply Suggestion</button>
+                                <button class="text-xs border border-gray-300 hover:bg-gray-50 px-3 py-1 rounded">Ignore</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Quill editor
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            placeholder: 'Start writing your essay...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Sample essay content
+        const sampleEssay = `<p>From the moment I first visited Harvard's campus during a family trip to Boston, I was captivated by the sense of intellectual vitality that permeates the university. Walking through Harvard Yard, I could almost feel the centuries of academic tradition and innovation that have defined this institution. But my interest in Harvard goes far beyond its storied reputation or historic buildings.</p>
+        <p>As someone deeply passionate about interdisciplinary research in computational biology, Harvard's commitment to breaking down barriers between traditional academic fields resonates strongly with me. The Systems Biology PhD program, which combines computer science, mathematics, and biology to tackle complex biological questions, perfectly aligns with my research interests. Professor Sarah Richardson's groundbreaking work on CRISPR applications in sustainable agriculture particularly excites me, as it represents the kind of impactful research I hope to pursue.</p>
+        <p>Beyond academics, Harvard's vibrant student organizations would provide me with opportunities to grow as a leader and community member. Having founded my high school's Biotechnology Club and led it to regional competition success, I'm eager to contribute to Harvard's iGEM team and Undergraduate Research Association. These platforms would allow me to collaborate with like-minded peers while mentoring younger students interested in scientific research.</p>`;
+
+        // Set initial content
+        quill.clipboard.dangerouslyPasteHTML(sampleEssay);
+
+        // Word count functionality
+        function updateWordCount() {
+            const text = quill.getText();
+            const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+            document.getElementById('word-count').textContent = `${wordCount} words`;
+        }
+
+        quill.on('text-change', updateWordCount);
+        updateWordCount(); // Initial count
+
+        // Tab switching
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const versionsPanel = document.getElementById('versions-panel');
+        const outlinePanel = document.getElementById('outline-panel');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Reset all tabs
+                tabBtns.forEach(b => {
+                    b.classList.remove('border-indigo-600', 'text-indigo-600');
+                    b.classList.add('text-gray-500');
+                });
+                
+                // Set active tab
+                this.classList.add('border-indigo-600', 'text-indigo-600');
+                this.classList.remove('text-gray-500');
+                
+                // Show appropriate panel
+                if (this.textContent.trim() === 'Versions') {
+                    versionsPanel.classList.remove('hidden');
+                    outlinePanel.classList.add('hidden');
+                } else {
+                    versionsPanel.classList.add('hidden');
+                    outlinePanel.classList.remove('hidden');
+                }
+            });
+        });
+
+        // Essay selection
+        const essayCards = document.querySelectorAll('.essay-card');
+        essayCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Reset all cards
+                essayCards.forEach(c => {
+                    c.classList.remove('bg-indigo-50', 'border-indigo-200');
+                    c.classList.add('bg-white', 'border-gray-200');
+                    c.querySelector('h3').classList.remove('text-indigo-800');
+                    c.querySelector('h3').classList.add('text-gray-800');
+                });
+                
+                // Set active card
+                this.classList.remove('bg-white', 'border-gray-200');
+                this.classList.add('bg-indigo-50', 'border-indigo-200');
+                this.querySelector('h3').classList.remove('text-gray-800');
+                this.querySelector('h3').classList.add('text-indigo-800');
+            });
+        });
+
+        // Upload zone functionality
+        const uploadZone = document.getElementById('upload-zone');
+        
+        uploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+        
+        uploadZone.addEventListener('dragleave', function() {
+            this.classList.remove('dragover');
+        });
+        
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                handleFile(files[0]);
+            }
+        });
+        
+        uploadZone.querySelector('input[type="file"]').addEventListener('change', function() {
+            if (this.files.length) {
+                handleFile(this.files[0]);
+            }
+        });
+        
+        function handleFile(file) {
+            // In a real app, this would process the file
+            // For demo purposes, just show an alert
+            alert(`File "${file.name}" would be uploaded and processed here.`);
+        }
+
+        // AI Assistant functionality
+        const aiAssistBtn = document.getElementById('ai-assist-btn');
+        const aiModal = document.getElementById('ai-modal');
+        const closeAiModal = document.getElementById('close-ai-modal');
+        
+        aiAssistBtn.addEventListener('click', function() {
+            aiModal.classList.remove('hidden');
+        });
+        
+        closeAiModal.addEventListener('click', function() {
+            aiModal.classList.add('hidden');
+        });
+        
+        // AI action buttons
+        const aiActionBtns = document.querySelectorAll('.ai-action-btn');
+        aiActionBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.textContent.trim();
+                alert(`The AI would now ${action.toLowerCase()} for your essay.`);
+            });
+        });
+
+        // Save button
+        document.getElementById('save-btn').addEventListener('click', function() {
+            // In a real app, this would save the essay
+            const content = quill.root.innerHTML;
+            alert('Essay saved successfully!');
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'947ece1d93b0eb2c',t:'MTc0ODYxNDEyMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

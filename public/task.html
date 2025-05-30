@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Application Tasks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1.3;
+            min-height: 100px;
+            transition: background-color 0.2s;
+        }
+        
+        .calendar-day:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .calendar-day.today {
+            background-color: #eff6ff;
+            border-color: #93c5fd;
+        }
+        
+        .calendar-day.different-month {
+            background-color: #f8fafc;
+        }
+        
+        .task-item {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        
+        .task-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .timeline-item {
+            position: relative;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 24px;
+            bottom: -12px;
+            width: 2px;
+            background-color: #e2e8f0;
+        }
+        
+        .timeline-item:last-child::before {
+            display: none;
+        }
+        
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            position: absolute;
+            left: 10px;
+            top: 10px;
+        }
+        
+        .dragging {
+            opacity: 0.7;
+            cursor: grabbing;
+        }
+        
+        .drag-over {
+            background-color: #e0f2fe !important;
+            border: 2px dashed #60a5fa !important;
+        }
+        
+        .priority-high {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .priority-medium {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .priority-low {
+            border-left: 4px solid #10b981;
+        }
+        
+        .tab-active {
+            color: #4f46e5;
+            border-color: #4f46e5;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-indigo-700 text-white shadow-md">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <h1 class="text-2xl font-bold">College Application Tasks</h1>
+                <div class="flex items-center space-x-3">
+                    <button id="add-task-btn" class="bg-white text-indigo-700 hover:bg-indigo-50 px-4 py-2 rounded-lg font-medium flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Task
+                    </button>
+                    <div class="relative" id="user-menu">
+                        <button class="flex items-center space-x-1">
+                            <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                                <span class="font-medium">JS</span>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-grow container mx-auto px-4 py-6">
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200 mb-6">
+                <button class="tab-btn px-6 py-3 border-b-2 -mb-px tab-active" data-tab="calendar">Calendar</button>
+                <button class="tab-btn px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="timeline">Timeline</button>
+            </div>
+
+            <!-- Calendar View -->
+            <div id="calendar-tab" class="tab-content">
+                <div class="mb-6 flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <button id="prev-month" class="p-1 rounded-full hover:bg-gray-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <h2 id="current-month" class="text-xl font-semibold text-gray-800">October 2023</h2>
+                        <button id="next-month" class="p-1 rounded-full hover:bg-gray-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button id="today-btn" class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">Today</button>
+                        <select id="filter-select" class="border rounded-md px-3 py-1 text-sm bg-white text-gray-700">
+                            <option value="all">All Tasks</option>
+                            <option value="essays">Essays</option>
+                            <option value="applications">Applications</option>
+                            <option value="tests">Tests</option>
+                            <option value="visits">Campus Visits</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Calendar Header -->
+                <div class="calendar-grid mb-1">
+                    <div class="text-center py-2 text-sm font-medium text-gray-600">Sun</div>
+                    <div class="text-center py-2 text-sm font-medium text-gray-600">Mon</div>
+                    <div class="text-center py-2 text-sm font-medium text-gray-600">Tue</div>
+                    <div class="text-center py-2 text-sm font-medium text-gray-600">Wed</div>
+                    <div class="text-center py-2 text-sm font-medium text-gray-600">Thu</div>
+                    <div class="text-center py-2 text-sm font-medium text-gray-600">Fri</div>
+                    <div class="text-center py-2 text-sm font-medium text-gray-600">Sat</div>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div id="calendar-grid" class="calendar-grid border border-gray-200 rounded-lg overflow-hidden">
+                    <!-- Calendar days will be generated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Timeline View -->
+            <div id="timeline-tab" class="tab-content hidden">
+                <div class="mb-6 flex justify-between items-center">
+                    <h2 class="text-xl font-semibold text-gray-800">Upcoming Deadlines</h2>
+                    <div class="flex items-center space-x-2">
+                        <select id="timeline-filter" class="border rounded-md px-3 py-1 text-sm bg-white text-gray-700">
+                            <option value="all">All Tasks</option>
+                            <option value="essays">Essays</option>
+                            <option value="applications">Applications</option>
+                            <option value="tests">Tests</option>
+                            <option value="visits">Campus Visits</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="timeline-container" class="space-y-4 pl-8">
+                    <!-- Timeline items will be generated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div id="task-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg w-full max-w-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-lg font-semibold text-gray-800">Add New Task</h3>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="task-form">
+                <input type="hidden" id="task-id">
+                <div class="mb-4">
+                    <label for="task-title" class="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
+                    <input type="text" id="task-title" class="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Enter task title" required>
+                </div>
+                <div class="mb-4">
+                    <label for="task-date" class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                    <input type="date" id="task-date" class="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="task-category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select id="task-category" class="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="essays">Essays</option>
+                        <option value="applications">Applications</option>
+                        <option value="tests">Tests</option>
+                        <option value="visits">Campus Visits</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="task-priority" class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                    <select id="task-priority" class="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="task-description" class="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                    <textarea id="task-description" class="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" rows="3" placeholder="Add details about this task"></textarea>
+                </div>
+                <div class="flex justify-between">
+                    <button type="button" id="delete-task" class="text-red-600 hover:text-red-800 font-medium hidden">Delete</button>
+                    <div class="flex space-x-2">
+                        <button type="button" id="cancel-task" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                        <button type="submit" id="save-task" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Save Task</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Sample tasks data
+        let tasks = [
+            {
+                id: 1,
+                title: "Harvard Application Due",
+                date: "2023-10-15",
+                category: "applications",
+                priority: "high",
+                description: "Complete and submit the Harvard application through Common App."
+            },
+            {
+                id: 2,
+                title: "Stanford Essay Draft",
+                date: "2023-10-08",
+                category: "essays",
+                priority: "medium",
+                description: "Complete first draft of Stanford 'What matters to you, and why?' essay."
+            },
+            {
+                id: 3,
+                title: "SAT Test Date",
+                date: "2023-10-07",
+                category: "tests",
+                priority: "high",
+                description: "SAT test at Lincoln High School. Bring ID and admission ticket."
+            },
+            {
+                id: 4,
+                title: "MIT Campus Visit",
+                date: "2023-10-20",
+                category: "visits",
+                priority: "medium",
+                description: "Campus tour at 10am, information session at 11:30am."
+            },
+            {
+                id: 5,
+                title: "Yale Interview Prep",
+                date: "2023-10-25",
+                category: "applications",
+                priority: "medium",
+                description: "Prepare answers for common interview questions."
+            },
+            {
+                id: 6,
+                title: "Common App Essay Final Review",
+                date: "2023-10-12",
+                category: "essays",
+                priority: "high",
+                description: "Final review of Common App personal statement before submissions."
+            }
+        ];
+
+        // DOM elements
+        const calendarGrid = document.getElementById('calendar-grid');
+        const currentMonthEl = document.getElementById('current-month');
+        const prevMonthBtn = document.getElementById('prev-month');
+        const nextMonthBtn = document.getElementById('next-month');
+        const todayBtn = document.getElementById('today-btn');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        const taskModal = document.getElementById('task-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const taskForm = document.getElementById('task-form');
+        const taskIdInput = document.getElementById('task-id');
+        const taskTitleInput = document.getElementById('task-title');
+        const taskDateInput = document.getElementById('task-date');
+        const taskCategoryInput = document.getElementById('task-category');
+        const taskPriorityInput = document.getElementById('task-priority');
+        const taskDescriptionInput = document.getElementById('task-description');
+        const modalTitle = document.getElementById('modal-title');
+        const deleteTaskBtn = document.getElementById('delete-task');
+        const cancelTaskBtn = document.getElementById('cancel-task');
+        const filterSelect = document.getElementById('filter-select');
+        const timelineFilter = document.getElementById('timeline-filter');
+        const timelineContainer = document.getElementById('timeline-container');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        // Current date and selected date
+        let currentDate = new Date();
+        let selectedDate = new Date();
+        let selectedDay = null;
+        let editingTaskId = null;
+
+        // Initialize calendar
+        renderCalendar();
+        renderTimeline();
+
+        // Event listeners
+        prevMonthBtn.addEventListener('click', () => {
+            selectedDate.setMonth(selectedDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        nextMonthBtn.addEventListener('click', () => {
+            selectedDate.setMonth(selectedDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        todayBtn.addEventListener('click', () => {
+            selectedDate = new Date();
+            renderCalendar();
+        });
+
+        addTaskBtn.addEventListener('click', () => {
+            openTaskModal();
+        });
+
+        closeModalBtn.addEventListener('click', closeTaskModal);
+        cancelTaskBtn.addEventListener('click', closeTaskModal);
+
+        taskForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveTask();
+        });
+
+        deleteTaskBtn.addEventListener('click', deleteTask);
+
+        filterSelect.addEventListener('change', () => {
+            renderCalendar();
+        });
+
+        timelineFilter.addEventListener('change', () => {
+            renderTimeline();
+        });
+
+        // Tab switching
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                
+                // Update active tab button
+                tabBtns.forEach(b => {
+                    b.classList.remove('tab-active');
+                    b.classList.add('text-gray-500', 'border-transparent');
+                });
+                btn.classList.add('tab-active');
+                btn.classList.remove('text-gray-500', 'border-transparent');
+                
+                // Show selected tab content
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+                
+                // Refresh the view
+                if (tabId === 'calendar') {
+                    renderCalendar();
+                } else if (tabId === 'timeline') {
+                    renderTimeline();
+                }
+            });
+        });
+
+        // Functions
+        function renderCalendar() {
+            calendarGrid.innerHTML = '';
+            
+            const year = selectedDate.getFullYear();
+            const month = selectedDate.getMonth();
+            
+            // Update month display
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            currentMonthEl.textContent = `${monthNames[month]} ${year}`;
+            
+            // Get first day of month and total days
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const totalDays = lastDay.getDate();
+            const startingDay = firstDay.getDay(); // 0 = Sunday
+            
+            // Get days from previous month
+            const prevMonthLastDay = new Date(year, month, 0).getDate();
+            
+            // Get filter value
+            const filterValue = filterSelect.value;
+            
+            // Create calendar days
+            let dayCount = 1;
+            let nextMonthDay = 1;
+            
+            // Create 6 rows to ensure we have enough space for all months
+            for (let row = 0; row < 6; row++) {
+                for (let col = 0; col < 7; col++) {
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = 'calendar-day border border-gray-200 p-1 overflow-hidden';
+                    
+                    // Previous month, current month, or next month
+                    if (row === 0 && col < startingDay) {
+                        // Previous month
+                        const prevDay = prevMonthLastDay - (startingDay - col - 1);
+                        dayDiv.innerHTML = `<div class="text-xs text-gray-400 p-1">${prevDay}</div>`;
+                        dayDiv.classList.add('different-month');
+                        
+                        const prevDate = new Date(year, month - 1, prevDay);
+                        addDayEventListeners(dayDiv, prevDate);
+                    } else if (dayCount <= totalDays) {
+                        // Current month
+                        const isToday = isDateToday(new Date(year, month, dayCount));
+                        if (isToday) {
+                            dayDiv.classList.add('today');
+                        }
+                        
+                        dayDiv.innerHTML = `<div class="text-xs font-medium p-1 ${isToday ? 'text-indigo-600' : 'text-gray-700'}">${dayCount}</div>`;
+                        
+                        // Add tasks for this day
+                        const currentDate = new Date(year, month, dayCount);
+                        const dayTasks = getTasksForDate(currentDate, filterValue);
+                        
+                        const tasksContainer = document.createElement('div');
+                        tasksContainer.className = 'space-y-1 mt-1';
+                        
+                        dayTasks.forEach(task => {
+                            const taskEl = createTaskElement(task);
+                            tasksContainer.appendChild(taskEl);
+                        });
+                        
+                        dayDiv.appendChild(tasksContainer);
+                        
+                        // Add event listeners for this day
+                        addDayEventListeners(dayDiv, currentDate);
+                        
+                        dayCount++;
+                    } else {
+                        // Next month
+                        dayDiv.innerHTML = `<div class="text-xs text-gray-400 p-1">${nextMonthDay}</div>`;
+                        dayDiv.classList.add('different-month');
+                        
+                        const nextDate = new Date(year, month + 1, nextMonthDay);
+                        addDayEventListeners(dayDiv, nextDate);
+                        
+                        nextMonthDay++;
+                    }
+                    
+                    calendarGrid.appendChild(dayDiv);
+                }
+            }
+        }
+
+        function addDayEventListeners(dayDiv, date) {
+            // Double click to add task
+            dayDiv.addEventListener('dblclick', () => {
+                openTaskModal(null, date);
+            });
+            
+            // Drag and drop functionality
+            dayDiv.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dayDiv.classList.add('drag-over');
+            });
+            
+            dayDiv.addEventListener('dragleave', () => {
+                dayDiv.classList.remove('drag-over');
+            });
+            
+            dayDiv.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dayDiv.classList.remove('drag-over');
+                
+                const taskId = e.dataTransfer.getData('text/plain');
+                if (taskId) {
+                    updateTaskDate(parseInt(taskId), date);
+                }
+            });
+        }
+
+        function createTaskElement(task) {
+            const taskEl = document.createElement('div');
+            taskEl.className = `task-item text-xs p-1 rounded-sm truncate priority-${task.priority}`;
+            taskEl.style.backgroundColor = getCategoryColor(task.category);
+            taskEl.textContent = task.title;
+            taskEl.setAttribute('data-id', task.id);
+            taskEl.draggable = true;
+            
+            // Click to edit
+            taskEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openTaskModal(task);
+            });
+            
+            // Drag start
+            taskEl.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', task.id);
+                taskEl.classList.add('dragging');
+            });
+            
+            // Drag end
+            taskEl.addEventListener('dragend', () => {
+                taskEl.classList.remove('dragging');
+            });
+            
+            return taskEl;
+        }
+
+        function getTasksForDate(date, filterValue) {
+            const dateString = formatDate(date);
+            
+            return tasks.filter(task => {
+                const taskDate = task.date;
+                const matchesDate = taskDate === dateString;
+                const matchesFilter = filterValue === 'all' || task.category === filterValue;
+                
+                return matchesDate && matchesFilter;
+            });
+        }
+
+        function renderTimeline() {
+            timelineContainer.innerHTML = '';
+            
+            // Sort tasks by date
+            const sortedTasks = [...tasks].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Filter tasks
+            const filterValue = timelineFilter.value;
+            const filteredTasks = filterValue === 'all' 
+                ? sortedTasks 
+                : sortedTasks.filter(task => task.category === filterValue);
+            
+            // Group tasks by date
+            const groupedTasks = {};
+            filteredTasks.forEach(task => {
+                if (!groupedTasks[task.date]) {
+                    groupedTasks[task.date] = [];
+                }
+                groupedTasks[task.date].push(task);
+            });
+            
+            // Create timeline items
+            Object.keys(groupedTasks).sort().forEach(date => {
+                const dateObj = new Date(date);
+                const formattedDate = dateObj.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                
+                const timelineItem = document.createElement('div');
+                timelineItem.className = 'timeline-item pl-8 pb-6 relative';
+                
+                // Add date header
+                const dateHeader = document.createElement('div');
+                dateHeader.className = 'mb-2';
+                
+                // Add colored dot
+                const dot = document.createElement('div');
+                dot.className = 'timeline-dot';
+                
+                // Color based on how soon the date is
+                const daysUntil = Math.ceil((dateObj - new Date()) / (1000 * 60 * 60 * 24));
+                
+                if (daysUntil < 0) {
+                    dot.classList.add('bg-gray-400'); // Past
+                } else if (daysUntil <= 7) {
+                    dot.classList.add('bg-red-500'); // Within a week
+                } else if (daysUntil <= 14) {
+                    dot.classList.add('bg-amber-500'); // Within two weeks
+                } else {
+                    dot.classList.add('bg-green-500'); // More than two weeks away
+                }
+                
+                timelineItem.appendChild(dot);
+                
+                // Add date text
+                const dateText = document.createElement('h3');
+                dateText.className = 'font-medium text-gray-800';
+                dateText.textContent = formattedDate;
+                
+                // Add days until/ago text
+                const daysText = document.createElement('span');
+                daysText.className = 'text-xs text-gray-500 ml-2';
+                
+                if (daysUntil === 0) {
+                    daysText.textContent = '(Today)';
+                    daysText.className += ' font-medium text-indigo-600';
+                } else if (daysUntil < 0) {
+                    daysText.textContent = `(${Math.abs(daysUntil)} day${Math.abs(daysUntil) !== 1 ? 's' : ''} ago)`;
+                } else {
+                    daysText.textContent = `(${daysUntil} day${daysUntil !== 1 ? 's' : ''} from now)`;
+                }
+                
+                dateText.appendChild(daysText);
+                dateHeader.appendChild(dateText);
+                timelineItem.appendChild(dateHeader);
+                
+                // Add tasks for this date
+                const tasksContainer = document.createElement('div');
+                tasksContainer.className = 'space-y-2';
+                
+                groupedTasks[date].forEach(task => {
+                    const taskItem = document.createElement('div');
+                    taskItem.className = `bg-white border rounded-lg p-3 shadow-sm priority-${task.priority}`;
+                    taskItem.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-medium text-gray-800">${task.title}</h4>
+                                <div class="flex items-center mt-1">
+                                    <span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color: ${getCategoryColor(task.category)}"></span>
+                                    <span class="text-xs text-gray-500">${getCategoryName(task.category)}</span>
+                                </div>
+                            </div>
+                            <span class="text-xs px-2 py-1 rounded-full ${getPriorityClass(task.priority)}">${capitalizeFirst(task.priority)}</span>
+                        </div>
+                        ${task.description ? `<p class="text-sm text-gray-600 mt-2">${task.description}</p>` : ''}
+                    `;
+                    
+                    // Click to edit
+                    taskItem.addEventListener('click', () => {
+                        openTaskModal(task);
+                    });
+                    
+                    tasksContainer.appendChild(taskItem);
+                });
+                
+                timelineItem.appendChild(tasksContainer);
+                timelineContainer.appendChild(timelineItem);
+            });
+            
+            // If no tasks
+            if (Object.keys(groupedTasks).length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'text-center py-8 text-gray-500';
+                emptyMessage.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p class="text-lg font-medium">No tasks found</p>
+                    <p class="mt-1">Add some tasks to see them in your timeline</p>
+                `;
+                timelineContainer.appendChild(emptyMessage);
+            }
+        }
+
+        function openTaskModal(task = null, date = null) {
+            if (task) {
+                // Edit existing task
+                modalTitle.textContent = 'Edit Task';
+                taskIdInput.value = task.id;
+                taskTitleInput.value = task.title;
+                taskDateInput.value = task.date;
+                taskCategoryInput.value = task.category;
+                taskPriorityInput.value = task.priority;
+                taskDescriptionInput.value = task.description || '';
+                deleteTaskBtn.classList.remove('hidden');
+                editingTaskId = task.id;
+            } else {
+                // Add new task
+                modalTitle.textContent = 'Add New Task';
+                taskForm.reset();
+                if (date) {
+                    taskDateInput.value = formatDate(date);
+                } else {
+                    taskDateInput.value = formatDate(new Date());
+                }
+                deleteTaskBtn.classList.add('hidden');
+                editingTaskId = null;
+            }
+            
+            taskModal.classList.remove('hidden');
+        }
+
+        function closeTaskModal() {
+            taskModal.classList.add('hidden');
+            editingTaskId = null;
+        }
+
+        function saveTask() {
+            const title = taskTitleInput.value.trim();
+            const date = taskDateInput.value;
+            const category = taskCategoryInput.value;
+            const priority = taskPriorityInput.value;
+            const description = taskDescriptionInput.value.trim();
+            
+            if (editingTaskId) {
+                // Update existing task
+                const taskIndex = tasks.findIndex(t => t.id === parseInt(editingTaskId));
+                if (taskIndex !== -1) {
+                    tasks[taskIndex] = {
+                        ...tasks[taskIndex],
+                        title,
+                        date,
+                        category,
+                        priority,
+                        description
+                    };
+                }
+            } else {
+                // Add new task
+                const newTask = {
+                    id: Date.now(), // Simple unique ID
+                    title,
+                    date,
+                    category,
+                    priority,
+                    description
+                };
+                tasks.push(newTask);
+            }
+            
+            closeTaskModal();
+            renderCalendar();
+            renderTimeline();
+        }
+
+        function deleteTask() {
+            if (editingTaskId) {
+                tasks = tasks.filter(task => task.id !== parseInt(editingTaskId));
+                closeTaskModal();
+                renderCalendar();
+                renderTimeline();
+            }
+        }
+
+        function updateTaskDate(taskId, newDate) {
+            const taskIndex = tasks.findIndex(t => t.id === taskId);
+            if (taskIndex !== -1) {
+                tasks[taskIndex].date = formatDate(newDate);
+                renderCalendar();
+                renderTimeline();
+            }
+        }
+
+        // Helper functions
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function isDateToday(date) {
+            const today = new Date();
+            return date.getDate() === today.getDate() &&
+                   date.getMonth() === today.getMonth() &&
+                   date.getFullYear() === today.getFullYear();
+        }
+
+        function getCategoryColor(category) {
+            const colors = {
+                essays: '#dbeafe', // Light blue
+                applications: '#e0e7ff', // Light indigo
+                tests: '#fef3c7', // Light amber
+                visits: '#d1fae5', // Light green
+                other: '#f3f4f6' // Light gray
+            };
+            return colors[category] || colors.other;
+        }
+
+        function getCategoryName(category) {
+            const names = {
+                essays: 'Essay',
+                applications: 'Application',
+                tests: 'Test',
+                visits: 'Campus Visit',
+                other: 'Other'
+            };
+            return names[category] || 'Task';
+        }
+
+        function getPriorityClass(priority) {
+            const classes = {
+                high: 'bg-red-100 text-red-800',
+                medium: 'bg-amber-100 text-amber-800',
+                low: 'bg-green-100 text-green-800'
+            };
+            return classes[priority] || '';
+        }
+
+        function capitalizeFirst(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'947edc4ca0d5251c',t:'MTc0ODYxNDcwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

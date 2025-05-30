@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniGuide AI | AI对话</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8f9ff;
+        }
+        .chat-container {
+            height: calc(100vh - 160px);
+        }
+        .message {
+            max-width: 80%;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .user-message {
+            background-color: #4f46e5;
+            color: white;
+            border-radius: 18px 18px 0 18px;
+        }
+        .ai-message {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            border-radius: 18px 18px 18px 0;
+        }
+        .typing-indicator span {
+            animation: blink 1.4s infinite both;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        .message-input {
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
+        .message-input:focus {
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
+        }
+        .send-button {
+            transition: all 0.2s ease;
+        }
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+        .send-button:active {
+            transform: scale(0.95);
+        }
+        .suggestions button {
+            transition: all 0.2s ease;
+        }
+        .suggestions button:hover {
+            transform: translateY(-2px);
+        }
+        .welcome-container {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes blink {
+            0% { opacity: 0.2; }
+            20% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+        
+        .sidebar-link {
+            transition: all 0.2s ease;
+        }
+        .sidebar-link:hover {
+            background-color: #f3f4f6;
+        }
+        .sidebar-link.active {
+            background-color: #ede9fe;
+            color: #4f46e5;
+        }
+        
+        /* 滚动条样式 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #d1d5db;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #9ca3af;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-sm py-3 px-4 flex items-center justify-between">
+        <div class="flex items-center">
+            <button id="sidebar-toggle" class="mr-4 md:hidden text-gray-500 hover:text-gray-700">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <div class="flex items-center">
+                <svg class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+                <span class="ml-2 text-blue-600 text-xl font-bold">UniGuide</span>
+            </div>
+        </div>
+        <div class="flex items-center">
+            <a href="#" class="text-gray-600 hover:text-gray-900 mr-4">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </a>
+            <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <span class="text-blue-600 font-bold text-sm">用户</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- 侧边栏 -->
+        <div id="sidebar" class="w-64 bg-white border-r border-gray-200 hidden md:block transition-all duration-300 ease-in-out">
+            <div class="p-4">
+                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition duration-300 flex items-center justify-center">
+                    <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    新对话
+                </button>
+            </div>
+            
+            <div class="px-4 py-2">
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">最近对话</h3>
+            </div>
+            
+            <div class="space-y-1 px-2 custom-scrollbar overflow-y-auto" style="max-height: calc(100vh - 200px);">
+                <a href="#" class="sidebar-link active flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                    <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                    </svg>
+                    大学专业选择建议
+                </a>
+                <a href="#" class="sidebar-link flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md">
+                    <svg class="mr-3 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                    </svg>
+                    美国大学申请问题
+                </a>
+                <a href="#" class="sidebar-link flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md">
+                    <svg class="mr-3 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                    </svg>
+                    奖学金申请策略
+                </a>
+                <a href="#" class="sidebar-link flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md">
+                    <svg class="mr-3 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                    </svg>
+                    留学生活准备
+                </a>
+            </div>
+            
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+                <a href="index.html" class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100">
+                    <svg class="mr-3 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    返回首页
+                </a>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 聊天区域 -->
+            <div id="chat-container" class="chat-container flex-1 overflow-y-auto p-4 custom-scrollbar">
+                <!-- 欢迎信息 -->
+                <div class="welcome-container text-white p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-3">欢迎使用大学智选助手</h2>
+                    <p class="mb-4">我是您的AI大学推荐顾问，可以帮您找到最适合的大学和专业。请告诉我您的学术背景、兴趣和目标，我将为您提供个性化建议。</p>
+                    <div class="bg-white bg-opacity-10 p-4 rounded-lg">
+                        <h3 class="font-medium mb-2">我可以帮您：</h3>
+                        <ul class="space-y-1">
+                            <li class="flex items-start">
+                                <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>根据您的情况推荐最适合的大学和专业</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>分析您被推荐大学录取的可能性</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>提供申请策略和时间规划</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>回答关于大学和专业的详细问题</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- 建议问题 -->
+                <div class="suggestions mb-8">
+                    <h3 class="text-sm font-medium text-gray-500 mb-3">您可以尝试问我：</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <button class="suggestion-btn bg-white border border-gray-200 hover:border-blue-300 p-3 rounded-lg text-left shadow-sm">
+                            <p class="font-medium text-gray-800">我是理科生，对计算机科学感兴趣，有哪些适合我的大学？</p>
+                        </button>
+                        <button class="suggestion-btn bg-white border border-gray-200 hover:border-blue-300 p-3 rounded-lg text-left shadow-sm">
+                            <p class="font-medium text-gray-800">我的高考成绩是580分，想学习商科，有什么推荐？</p>
+                        </button>
+                        <button class="suggestion-btn bg-white border border-gray-200 hover:border-blue-300 p-3 rounded-lg text-left shadow-sm">
+                            <p class="font-medium text-gray-800">美国大学的申请流程是怎样的？需要准备哪些材料？</p>
+                        </button>
+                        <button class="suggestion-btn bg-white border border-gray-200 hover:border-blue-300 p-3 rounded-lg text-left shadow-sm">
+                            <p class="font-medium text-gray-800">我想申请奖学金，有什么建议可以提高获得奖学金的机会？</p>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 聊天消息将在这里动态添加 -->
+                <div id="messages" class="space-y-4">
+                    <!-- 示例消息 -->
+                    <div class="flex justify-end">
+                        <div class="message user-message p-4">
+                            <p>我是高三学生，对人工智能和计算机科学感兴趣，高考预估分数在650-680之间，想申请国内和美国的大学，有什么推荐吗？</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-start">
+                        <div class="message ai-message p-4">
+                            <p class="mb-3">根据您的情况，我为您推荐以下大学：</p>
+                            <p class="font-bold mb-1">国内大学：</p>
+                            <ul class="list-disc pl-5 mb-3">
+                                <li>清华大学 - 计算机科学与技术专业（AI方向）</li>
+                                <li>北京大学 - 智能科学与技术专业</li>
+                                <li>上海交通大学 - 人工智能学院</li>
+                                <li>浙江大学 - 计算机科学与技术学院</li>
+                            </ul>
+                            <p class="font-bold mb-1">美国大学：</p>
+                            <ul class="list-disc pl-5 mb-3">
+                                <li>卡内基梅隆大学 - 计算机科学学院</li>
+                                <li>加州大学伯克利分校 - EECS专业</li>
+                                <li>密歇根大学安娜堡分校 - 计算机科学与工程</li>
+                                <li>佐治亚理工学院 - 计算机科学专业</li>
+                            </ul>
+                            <p>您需要了解更多关于这些大学的具体信息吗？或者您对申请流程有什么问题？</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 正在输入指示器 -->
+                    <div id="typing-indicator" class="flex justify-start hidden">
+                        <div class="message ai-message p-4">
+                            <div class="typing-indicator flex space-x-1">
+                                <span class="h-2 w-2 bg-gray-500 rounded-full"></span>
+                                <span class="h-2 w-2 bg-gray-500 rounded-full"></span>
+                                <span class="h-2 w-2 bg-gray-500 rounded-full"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 输入区域 -->
+            <div class="p-4 border-t border-gray-200 bg-white">
+                <div class="relative">
+                    <textarea id="message-input" class="message-input w-full border border-gray-300 rounded-lg py-3 px-4 pr-12 focus:outline-none focus:border-blue-500 resize-none" rows="1" placeholder="输入您的问题..." style="min-height: 50px; max-height: 150px;"></textarea>
+                    <button id="send-button" class="send-button absolute right-3 bottom-3 bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 focus:outline-none">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="text-xs text-gray-500 mt-2 flex items-center justify-between">
+                    <span>按 Enter 发送，Shift + Enter 换行</span>
+                    <button id="clear-chat" class="text-gray-500 hover:text-gray-700">清空对话</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 自动调整文本区域高度
+        const messageInput = document.getElementById('message-input');
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        
+        // 发送消息
+        const sendButton = document.getElementById('send-button');
+        const messagesContainer = document.getElementById('messages');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const chatContainer = document.getElementById('chat-container');
+        const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+        
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                // 添加用户消息
+                const userMessageDiv = document.createElement('div');
+                userMessageDiv.className = 'flex justify-end';
+                userMessageDiv.innerHTML = `
+                    <div class="message user-message p-4">
+                        <p>${message}</p>
+                    </div>
+                `;
+                messagesContainer.appendChild(userMessageDiv);
+                
+                // 清空输入框并重置高度
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                
+                // 滚动到底部
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // 显示正在输入指示器
+                typingIndicator.classList.remove('hidden');
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // 模拟AI回复
+                setTimeout(() => {
+                    // 隐藏正在输入指示器
+                    typingIndicator.classList.add('hidden');
+                    
+                    // 添加AI回复
+                    const aiResponse = getAIResponse(message);
+                    const aiMessageDiv = document.createElement('div');
+                    aiMessageDiv.className = 'flex justify-start';
+                    aiMessageDiv.innerHTML = `
+                        <div class="message ai-message p-4">
+                            ${aiResponse}
+                        </div>
+                    `;
+                    messagesContainer.appendChild(aiMessageDiv);
+                    
+                    // 滚动到底部
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 1500);
+            }
+        }
+        
+        // 处理发送按钮点击
+        sendButton.addEventListener('click', sendMessage);
+        
+        // 处理按键事件
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // 处理建议问题点击
+        suggestionBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const question = this.querySelector('p').textContent;
+                messageInput.value = question;
+                messageInput.style.height = 'auto';
+                messageInput.style.height = (messageInput.scrollHeight) + 'px';
+                sendMessage();
+            });
+        });
+        
+        // 清空对话
+        document.getElementById('clear-chat').addEventListener('click', function() {
+            // 保留欢迎信息和建议问题，清空所有消息
+            const welcomeContainer = document.querySelector('.welcome-container');
+            const suggestionsContainer = document.querySelector('.suggestions');
+            
+            messagesContainer.innerHTML = '';
+            messagesContainer.appendChild(welcomeContainer);
+            messagesContainer.appendChild(suggestionsContainer);
+        });
+        
+        // 移动端侧边栏切换
+        document.getElementById('sidebar-toggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('hidden');
+        });
+        
+        // 模拟AI回复（实际应用中应该通过API获取）
+        function getAIResponse(message) {
+            // 这里是简单的模拟回复，实际应用中应该通过API获取
+            const responses = {
+                "我是理科生，对计算机科学感兴趣，有哪些适合我的大学？": `
+                    <p class="mb-3">作为理科生对计算机科学感兴趣，这是一个很好的选择！以下是一些适合您的大学推荐：</p>
+                    <p class="font-bold mb-1">国内大学：</p>
+                    <ul class="list-disc pl-5 mb-3">
+                        <li>清华大学 - 计算机科学与技术（全国排名第一的计算机专业）</li>
+                        <li>北京大学 - 计算机科学与技术</li>
+                        <li>上海交通大学 - 计算机科学与工程学院</li>
+                        <li>浙江大学 - 计算机科学与技术学院</li>
+                        <li>南京大学 - 计算机科学与技术系</li>
+                    </ul>
+                    <p class="font-bold mb-1">国际大学：</p>
+                    <ul class="list-disc pl-5 mb-3">
+                        <li>麻省理工学院 (MIT) - 计算机科学与人工智能实验室</li>
+                        <li>斯坦福大学 - 计算机科学系</li>
+                        <li>卡内基梅隆大学 - 计算机科学学院</li>
+                        <li>加州大学伯克利分校 - 电气工程与计算机科学</li>
+                        <li>新加坡国立大学 - 计算机学院</li>
+                    </ul>
+                    <p>您有特定的地理位置偏好或其他因素需要考虑吗？我可以根据您的具体情况提供更精准的建议。</p>
+                `,
+                "我的高考成绩是580分，想学习商科，有什么推荐？": `
+                    <p class="mb-3">根据您580分的高考成绩和对商科的兴趣，以下是一些可以考虑的大学和专业：</p>
+                    <p class="font-bold mb-1">国内大学：</p>
+                    <ul class="list-disc pl-5 mb-3">
+                        <li>西南财经大学 - 金融学/会计学</li>
+                        <li>东北财经大学 - 工商管理/市场营销</li>
+                        <li>江西财经大学 - 国际经济与贸易</li>
+                        <li>山东财经大学 - 财务管理</li>
+                        <li>浙江工商大学 - 工商管理</li>
+                    </ul>
+                    <p class="font-bold mb-1">国际选择：</p>
+                    <ul class="list-disc pl-5 mb-3">
+                        <li>马来西亚思特雅大学 - 工商管理</li>
+                        <li>泰国曼谷大学 - 国际商务</li>
+                        <li>中外合作办学项目（如西交利物浦大学的商科专业）</li>
+                    </ul>
+                    <p>您对商科的哪个具体方向更感兴趣？例如金融、会计、市场营销或国际贸易？这样我可以提供更有针对性的建议。</p>
+                `,
+                "美国大学的申请流程是怎样的？需要准备哪些材料？": `
+                    <p class="mb-3">美国大学的申请流程相对标准化，但也需要充分准备。以下是主要步骤和所需材料：</p>
+                    <p class="font-bold mb-2">申请流程：</p>
+                    <ol class="list-decimal pl-5 mb-3">
+                        <li class="mb-1">选择目标大学（通常建议申请8-12所，包括冲刺、匹配和保底学校）</li>
+                        <li class="mb-1">注册Common Application或其他申请平台</li>
+                        <li class="mb-1">准备并提交所有申请材料</li>
+                        <li class="mb-1">跟踪申请状态</li>
+                        <li class="mb-1">收到录取结果后做出决定</li>
+                        <li>完成签证申请和行前准备</li>
+                    </ol>
+                    <p class="font-bold mb-2">必要申请材料：</p>
+                    <ul class="list-disc pl-5 mb-3">
+                        <li>标准化考试成绩（托福/雅思、SAT/ACT）</li>
+                        <li>成绩单（高中三年的学术记录，需翻译和公证）</li>
+                        <li>个人陈述/申请论文</li>
+                        <li>推荐信（通常需要2-3封）</li>
+                        <li>简历（课外活动、获奖情况、工作/志愿者经历）</li>
+                        <li>财力证明（银行存款证明等）</li>
+                        <li>护照复印件</li>
+                    </ul>
+                    <p class="font-bold mb-2">重要时间节点：</p>
+                    <ul class="list-disc pl-5 mb-3">
+                        <li>早申请截止日：通常在11月1日或11月15日</li>
+                        <li>常规申请截止日：通常在1月1日至2月1日之间</li>
+                        <li>录取结果公布：3月底至4月初</li>
+                        <li>确认入学截止日：通常为5月1日</li>
+                    </ul>
+                    <p>您目前处于申请流程的哪个阶段？或者有关于特定材料准备的具体问题吗？</p>
+                `,
+                "我想申请奖学金，有什么建议可以提高获得奖学金的机会？": `
+                    <p class="mb-3">提高获得奖学金机会的策略包括：</p>
+                    <ul class="list-disc pl-5 mb-4">
+                        <li class="mb-2"><span class="font-medium">提前规划</span>：至少提前一年开始研究奖学金机会，了解各类奖学金的申请条件和截止日期。</li>
+                        <li class="mb-2"><span class="font-medium">多元化申请</span>：不要只关注大型奖学金，小额奖学金竞争往往较小，累积起来也很可观。</li>
+                        <li class="mb-2"><span class="font-medium">突出个人特色</span>：在申请材料中强调您的独特经历、成就和目标，展示您与众不同的价值。</li>
+                        <li class="mb-2"><span class="font-medium">学术表现</span>：保持优异的学术成绩，这是大多数奖学金的基本要求。</li>
+                        <li class="mb-2"><span class="font-medium">课外活动</span>：积极参与社区服务、领导力项目、研究项目等，展示全面发展。</li>
+                        <li class="mb-2"><span class="font-medium">精心准备文书</span>：花时间撰写有说服力的个人陈述和奖学金论文，突出您的优势和抱负。</li>
+                        <li class="mb-2"><span class="font-medium">获取强有力的推荐信</span>：选择了解您的老师或导师，提前与他们沟通您的奖学金申请计划。</li>
+                        <li class="mb-2"><span class="font-medium">面试准备</span>：如果奖学金需要面试，提前准备常见问题的回答，展示自信和热情。</li>
+                    </ul>
+                    <p class="font-bold mb-2">奖学金类型：</p>
+                    <ul class="list-disc pl-5 mb-3">
+                        <li>基于成绩的奖学金</li>
+                        <li>基于需求的助学金</li>
+                        <li>特定专业/领域奖学金</li>
+                        <li>少数族裔/国际学生奖学金</li>
+                        <li>体育/艺术特长奖学金</li>
+                        <li>社区服务奖学金</li>
+                    </ul>
+                    <p>您对哪类奖学金特别感兴趣？或者您有特定的学术背景或特长可以利用吗？</p>
+                `,
+                "我是高三学生，对人工智能和计算机科学感兴趣，高考预估分数在650-680之间，想申请国内和美国的大学，有什么推荐吗？": `
+                    <p class="mb-3">根据您的情况，我为您推荐以下大学：</p>
+                    <p class="font-bold mb-1">国内大学：</p>
+                    <ul class="list-disc pl-5 mb-3">
+                        <li>清华大学 - 计算机科学与技术专业（AI方向）</li>
+                        <li>北京大学 - 智能科学与技术专业</li>
+                        <li>上海交通大学 - 人工智能学院</li>
+                        <li>浙江大学 - 计算机科学与技术学院</li>
+                        <li>南京大学 - 人工智能学院</li>
+                        <li>哈尔滨工业大学 - 计算机科学与技术学院</li>
+                    </ul>
+                    <p class="font-bold mb-1">美国大学：</p>
+                    <ul class="list-disc pl-5 mb-3">
+                        <li>卡内基梅隆大学 - 计算机科学学院</li>
+                        <li>加州大学伯克利分校 - EECS专业</li>
+                        <li>密歇根大学安娜堡分校 - 计算机科学与工程</li>
+                        <li>佐治亚理工学院 - 计算机科学专业</li>
+                        <li>伊利诺伊大学厄巴纳-香槟分校 - 计算机科学系</li>
+                        <li>普渡大学 - 计算机科学系</li>
+                    </ul>
+                    <p>对于美国大学，您需要准备托福/雅思和SAT/ACT考试。同时，美国大学非常看重课外活动和个人特质，建议您在申请材料中突出展示您在人工智能或计算机科学领域的兴趣和实践经验。</p>
+                    <p>您对这些大学有什么具体问题吗？或者需要了解申请流程的详细信息？</p>
+                `
+            };
+            
+            // 默认回复
+            let response = `
+                <p>感谢您的提问。我需要更多信息来为您提供个性化的大学推荐。</p>
+                <p>请告诉我：</p>
+                <ul class="list-disc pl-5 mb-3">
+                    <li>您的学术背景（高考分数或GPA）</li>
+                    <li>您感兴趣的专业领域</li>
+                    <li>您的地理偏好（国内/国外）</li>
+                    <li>其他重要因素（如预算、校园环境偏好等）</li>
+                </ul>
+                <p>有了这些信息，我可以为您提供更准确的建议。</p>
+            `;
+            
+            // 检查是否有匹配的预设回复
+            for (const key in responses) {
+                if (message.includes(key) || key.includes(message)) {
+                    response = responses[key];
+                    break;
+                }
+            }
+            
+            return response;
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'947e258140531742',t:'MTc0ODYwNzIxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
