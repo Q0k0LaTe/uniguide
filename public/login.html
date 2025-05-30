@@ -106,7 +106,8 @@
             
             <!-- 登录表单 -->
             <div id="login-panel" class="form-panel">
-                <form class="mt-8 space-y-6" action="#" method="POST">
+                <form id="loginForm" class="mt-8 space-y-6">
+                    <div id="login-error-message" class="hidden text-red-500 text-sm text-center"></div>
                     <div class="rounded-md shadow-sm -space-y-px">
                         <div>
                             <label for="login-email" class="sr-only">邮箱地址</label>
@@ -187,7 +188,9 @@
             
             <!-- 注册表单 -->
             <div id="register-panel" class="form-panel hidden">
-                <form class="mt-8 space-y-6" action="#" method="POST">
+                <form id="registerForm" class="mt-8 space-y-6">
+                    <div id="register-error-message" class="hidden text-red-500 text-sm text-center"></div>
+                    <div id="register-success-message" class="hidden text-green-500 text-sm text-center"></div>
                     <div class="rounded-md shadow-sm -space-y-px">
                         <div>
                             <label for="register-name" class="sr-only">姓名</label>
@@ -199,18 +202,22 @@
                         </div>
                         <div>
                             <label for="register-password" class="sr-only">密码</label>
-                            <input id="register-password" name="password" type="password" autocomplete="new-password" required class="form-input appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="密码">
+                            <input id="register-password" name="password" type="password" autocomplete="new-password" required class="form-input appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="密码 (至少6位)">
                         </div>
                         <div>
                             <label for="register-password-confirm" class="sr-only">确认密码</label>
-                            <input id="register-password-confirm" name="password-confirm" type="password" autocomplete="new-password" required class="form-input appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="确认密码">
+                            <input id="register-password-confirm" name="password-confirm" type="password" autocomplete="new-password" required class="form-input appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="确认密码">
+                        </div>
+                        <div>
+                            <label for="register-invitation-code" class="sr-only">邀请码</label>
+                            <input id="register-invitation-code" name="invitationCode" type="text" required class="form-input appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="邀请码">
                         </div>
                     </div>
 
                     <div class="flex items-center">
                         <input id="agree-terms" name="agree-terms" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" required>
                         <label for="agree-terms" class="ml-2 block text-sm text-gray-900">
-                            我已阅读并同意 <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">服务条款</a> 和 <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">隐私政策</a>
+                            我已阅读并同意 <a href="legal.html" class="font-medium text-indigo-600 hover:text-indigo-500">服务条款</a> 和 <a href="legal.html" class="font-medium text-indigo-600 hover:text-indigo-500">隐私政策</a>
                         </label>
                     </div>
 
@@ -302,67 +309,7 @@
         </div>
     </footer>
 
-    <script>
-        // 登录/注册切换功能
-        const loginTab = document.getElementById('login-tab');
-        const registerTab = document.getElementById('register-tab');
-        const loginPanel = document.getElementById('login-panel');
-        const registerPanel = document.getElementById('register-panel');
-        
-        loginTab.addEventListener('click', function() {
-            loginTab.classList.add('tab-active');
-            loginTab.classList.remove('tab-inactive');
-            registerTab.classList.add('tab-inactive');
-            registerTab.classList.remove('tab-active');
-            
-            loginPanel.classList.remove('hidden');
-            registerPanel.classList.add('hidden');
-        });
-        
-        registerTab.addEventListener('click', function() {
-            registerTab.classList.add('tab-active');
-            registerTab.classList.remove('tab-inactive');
-            loginTab.classList.add('tab-inactive');
-            loginTab.classList.remove('tab-active');
-            
-            registerPanel.classList.remove('hidden');
-            loginPanel.classList.add('hidden');
-        });
-        
-        // 移动菜单功能
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
-        
-        if (mobileMenuButton && mobileMenu) {
-            mobileMenuButton.addEventListener('click', function() {
-                mobileMenu.classList.toggle('hidden');
-            });
-        }
-        
-        // 表单验证
-        const loginForm = loginPanel.querySelector('form');
-        const registerForm = registerPanel.querySelector('form');
-        
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            // 这里可以添加登录表单验证和提交逻辑
-            alert('登录功能演示');
-        });
-        
-        registerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const password = document.getElementById('register-password').value;
-            const confirmPassword = document.getElementById('register-password-confirm').value;
-            
-            if (password !== confirmPassword) {
-                alert('两次输入的密码不一致，请重新输入');
-                return;
-            }
-            
-            // 这里可以添加注册表单验证和提交逻辑
-            alert('注册功能演示');
-        });
-    </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'947e813166d68486',t:'MTc0ODYxMDk3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+    <script src="js/login.js"></script> <!-- Link to your specific login JS -->
+    <!-- Removed Cloudflare script -->
+</body>
 </html>

@@ -533,6 +533,31 @@ class UniGuideApp {
             });
         }
     }
+
+    
+    initializeCurrentPage() {
+        const pathname = window.location.pathname;
+        
+        // Page-specific initialization
+        switch (pathname) {
+            case '/':
+                this.initializeHomepage();
+                break;
+            case '/dashboard':
+                this.initializeDashboard();
+                break;
+            case '/colleges':
+                this.initializeColleges();
+                break;
+            case '/essays':
+                this.initializeEssays();
+                break;
+            case '/tasks':
+                this.initializeTasks();
+                break;
+            case '/chat':
+                this.initializeChat();
+                break;
     
     async saveSettings() {
         // Collect all form data from settings

@@ -5,9 +5,116 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const OpenAI = require('openai');
+const mongoose = require('mongoose');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// MongoDB Connection
+const MONGO_URI = "mongodb+srv://q0k0lates:NH6zWhnlkMwX5AEa@uniguide.kqkkinv.mongodb.net/?retryWrites=true&w=majority&appName=UniGuide";
+mongoose.connect(MONGO_URI)
+    .then(() => console.log('MongoDB connected successfully.'))
+    .catch(err => console.error('MongoDB connection error:', err));
+
+// Define Schemas (example for User, expand as needed)
+const UserSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    invitationCode: { type: String, required: true },
+    isVerified: { type: Boolean, default: false },
+    emailVerificationToken: String,
+    emailVerificationExpires: Date,
+    createdAt: { type: Date, default: Date.now }
+});
+const User = mongoose.model('User', UserSchema);
+
+// College Schema
+const CollegeSchema = new mongoose.Schema({
+    // Define fields based on sampleColleges and potential future needs
+    name: { type: String, required: true },
+    location: String,
+    type: String,
+    ranking: Number,
+    tuition: Number,
+    acceptanceRate: Number,
+    description: String,
+    website: String,
+    image: String,
+    programs: [String],
+    requirements: {
+        gpa: Number,
+        sat: Number,
+        toefl: Number
+    }
+});
+const College = mongoose.model('College', CollegeSchema);
+
+// UserProfile Schema
+const UserProfileSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+    // Example fields, expand based on settings.html
+    academicInterests: [String],
+    safetySchools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'College' }],
+    targetSchools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'College' }],
+    reachSchools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'College' }],
+    // Add other preferences from wizard/settings
+    preferredLocation: String,
+    majorPreference: String,
+    extracurriculars: [String],
+    profilePic: String // URL to image
+});
+const UserProfile = mongoose.model('UserProfile', UserProfileSchema);
+
+// CollegeNote Schema
+const CollegeNoteSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    collegeId: { type: mongoose.Schema.Types.ObjectId, ref: 'College', required: true },
+    notes: String,
+    pros: [String],
+    cons: [String],
+    rating: Number, // e.g., 1-5 stars
+    lastUpdated: { type: Date, default: Date.now }
+});
+const CollegeNote = mongoose.model('CollegeNote', CollegeNoteSchema);
+
+// Essay Schema
+const EssaySchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    title: String,
+    prompt: String,
+    content: String,
+    status: { type: String, enum: ['Not Started', 'Drafting', 'Reviewing', 'Completed'], default: 'Not Started' },
+    dueDate: Date,
+    collegeApplication: { type: mongoose.Schema.Types.ObjectId, ref: 'College' }, // Optional link to a specific college
+    lastUpdated: { type: Date, default: Date.now }
+});
+const Essay = mongoose.model('Essay', EssaySchema);
+
+// Task Schema
+const TaskSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    title: String,
+    description: String,
+    dueDate: Date,
+    priority: { type: String, enum: ['Low', 'Medium', 'High'], default: 'Medium' },
+    completed: { type: Boolean, default: false },
+    collegeSpecific: { type: mongoose.Schema.Types.ObjectId, ref: 'College' }, // Optional link to a college
+    category: String, // e.g., 'Application', 'Financial Aid', 'Recommendation Letter'
+    lastUpdated: { type: Date, default: Date.now }
+});
+const Task = mongoose.model('Task', TaskSchema);
+
+// ChatMessage Schema (for ChatHistory)
+const ChatMessageSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    sender: { type: String, enum: ['user', 'ai'], required: true },
+    message: String,
+    timestamp: { type: Date, default: Date.now },
+    // Optional: context, session ID if you want to group conversations
+    conversationId: String 
+});
+const ChatMessage = mongoose.model('ChatMessage', ChatMessageSchema);
 
 // DeepSeek AI Configuration
 const openai = new OpenAI({
@@ -27,16 +134,16 @@ app.use(session({
     cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
 }));
 
-// In-memory databases (replace with real database in production)
-const users = new Map();
-const colleges = new Map();
-const userProfiles = new Map();
-const collegeNotes = new Map();
-const essays = new Map();
-const tasks = new Map();
-const chatHistory = new Map();
+// Remove In-memory databases 
+// const users = new Map();
+// const colleges = new Map();
+// const userProfiles = new Map();
+// const collegeNotes = new Map();
+// const essays = new Map();
+// const tasks = new Map();
+// const chatHistory = new Map();
 
-// Sample college data
+// Sample college data - This could be moved to MongoDB as well
 const sampleColleges = [
     {
         id: 1,
@@ -130,10 +237,10 @@ const sampleColleges = [
     }
 ];
 
-// Initialize sample data
-sampleColleges.forEach(college => {
-    colleges.set(college.id, college);
-});
+// Initialize sample data - If using MongoDB, this would be an initial data seeding script
+// sampleColleges.forEach(college => {
+//     colleges.set(college.id, college);
+// });
 
 // Middleware to check authentication
 const requireAuth = (req, res, next) => {
@@ -158,8 +265,8 @@ app.get('/wizard', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'wizard.html'));
 });
 
-app.get('/dashboard', requireAuth, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+app.get('/dashboard', requireAuth, (req, res) => { // This route might be deprecated if UniGuide.html is the dashboard
+    res.sendFile(path.join(__dirname, 'public', 'UniGuide.html')); // Or redirect to /
 });
 
 app.get('/colleges', requireAuth, (req, res) => {
@@ -182,136 +289,147 @@ app.get('/settings', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'settings.html'));
 });
 
+app.get('/legal', (req, res) => { // Added route for legal.html
+    res.sendFile(path.join(__dirname, 'public', 'legal.html'));
+});
+
 // Authentication APIs
 app.post('/api/auth/register', async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-        
-        // Check if user already exists
-        for (let [id, user] of users) {
-            if (user.email === email) {
-                return res.status(400).json({ error: 'User already exists' });
-            }
+        const { name, email, password, invitationCode } = req.body;
+
+        // TODO: Add a list of valid invitation codes, or a system to generate/check them
+        // For now, let's assume a hardcoded valid code for demonstration
+        const VALID_INVITATION_CODE = "UniGuide2024"; // Replace with your actual logic
+        if (invitationCode !== VALID_INVITATION_CODE) {
+            return res.status(400).json({ error: 'Invalid invitation code.' });
+        }
+
+        let existingUser = await User.findOne({ email: email });
+        if (existingUser) {
+            return res.status(400).json({ error: 'User already exists' });
         }
         
-        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        // Create user
-        const userId = Date.now();
-        const user = {
-            id: userId,
+        const newUser = new User({
             name,
             email,
             password: hashedPassword,
-            createdAt: new Date()
-        };
+            invitationCode
+        });
         
-        users.set(userId, user);
-        req.session.userId = userId;
+        const savedUser = await newUser.save();
+        req.session.userId = savedUser._id; // Use MongoDB's _id
         
-        res.json({ success: true, user: { id: userId, name, email } });
+        res.json({ success: true, user: { id: savedUser._id, name: savedUser.name, email: savedUser.email } });
     } catch (error) {
+        console.error("Registration error:", error);
         res.status(500).json({ error: 'Registration failed' });
     }
 });
 
 app.post('/api/auth/login', async (req, res) => {
+    const { email, password } = req.body;
     try {
-        const { email, password } = req.body;
-        
-        // Find user
-        let user = null;
-        for (let [id, u] of users) {
-            if (u.email === email) {
-                user = u;
-                break;
-            }
-        }
-        
+        const user = await User.findOne({ email });
         if (!user) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            return res.status(400).json({ message: 'Invalid credentials' });
         }
-        
-        // Check password
-        const isValid = await bcrypt.compare(password, user.password);
-        if (!isValid) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid credentials' });
         }
-        
-        req.session.userId = user.id;
-        res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
+        req.session.userId = user._id; // Set session
+        // Redirect to dashboard upon successful login
+        res.redirect('/dashboard.html');
     } catch (error) {
-        res.status(500).json({ error: 'Login failed' });
+        console.error('Login error:', error);
+        res.status(500).json({ message: 'Server error during login' });
     }
 });
 
 app.post('/api/auth/logout', (req, res) => {
-    req.session.destroy();
-    res.json({ success: true });
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ error: 'Logout failed' });
+        }
+        res.clearCookie('connect.sid'); // Default session cookie name, adjust if different
+        res.json({ success: true, message: 'Logged out successfully' });
+    });
 });
 
-// User Profile APIs
-app.get('/api/user/profile', requireAuth, (req, res) => {
-    const profile = userProfiles.get(req.session.userId) || {};
-    res.json(profile);
+// Check auth status API
+app.get('/api/auth/status', (req, res) => {
+    if (req.session.userId) {
+        // Optionally, you could fetch the user here to return more info if needed
+        res.json({ isLoggedIn: true, userId: req.session.userId });
+    } else {
+        res.json({ isLoggedIn: false });
+    }
 });
 
-app.post('/api/user/profile', requireAuth, (req, res) => {
-    const userId = req.session.userId;
-    const profile = req.body;
-    profile.userId = userId;
-    profile.updatedAt = new Date();
-    
-    userProfiles.set(userId, profile);
-    res.json({ success: true, profile });
+// User Profile APIs (Settings)
+app.get('/api/profile', requireAuth, async (req, res) => {
+    try {
+        const profile = await UserProfile.findOne({ userId: req.session.userId }).populate('safetySchools targetSchools reachSchools');
+        if (!profile) {
+            // If no profile, return a default structure or 204 No Content, or an empty object 
+            // to make it easier for the frontend to handle.
+            return res.json({ /* defaults or empty if preferred */ }); 
+        }
+        res.json(profile);
+    } catch (error) {
+        console.error("Error fetching profile:", error);
+        res.status(500).json({ error: 'Failed to fetch profile' });
+    }
 });
 
-// College APIs
-app.get('/api/colleges', requireAuth, (req, res) => {
-    const { search, type, location, minRanking, maxRanking } = req.query;
-    let filteredColleges = Array.from(colleges.values());
-    
-    if (search) {
-        filteredColleges = filteredColleges.filter(college => 
-            college.name.toLowerCase().includes(search.toLowerCase()) ||
-            college.description.toLowerCase().includes(search.toLowerCase())
-        );
+app.post('/api/profile', requireAuth, async (req, res) => {
+    try {
+        const profileData = { ...req.body, userId: req.session.userId };
+        // Ensure school lists are arrays of ObjectIds if provided
+        if (profileData.safetySchools) profileData.safetySchools = profileData.safetySchools.map(id => new mongoose.Types.ObjectId(id));
+        if (profileData.targetSchools) profileData.targetSchools = profileData.targetSchools.map(id => new mongoose.Types.ObjectId(id));
+        if (profileData.reachSchools) profileData.reachSchools = profileData.reachSchools.map(id => new mongoose.Types.ObjectId(id));
+
+        const profile = await UserProfile.findOneAndUpdate({ userId: req.session.userId }, profileData, { new: true, upsert: true, runValidators: true });
+        res.json({ success: true, profile });
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ error: error.message });
+        }
+        res.status(500).json({ error: 'Failed to update profile' });
     }
-    
-    if (type) {
-        filteredColleges = filteredColleges.filter(college => 
-            college.type.toLowerCase() === type.toLowerCase()
-        );
-    }
-    
-    if (location) {
-        filteredColleges = filteredColleges.filter(college => 
-            college.location.toLowerCase().includes(location.toLowerCase())
-        );
-    }
-    
-    if (minRanking) {
-        filteredColleges = filteredColleges.filter(college => 
-            college.ranking >= parseInt(minRanking)
-        );
-    }
-    
-    if (maxRanking) {
-        filteredColleges = filteredColleges.filter(college => 
-            college.ranking <= parseInt(maxRanking)
-        );
-    }
-    
-    res.json(filteredColleges);
 });
 
-app.get('/api/colleges/:id', requireAuth, (req, res) => {
-    const college = colleges.get(parseInt(req.params.id));
-    if (!college) {
-        return res.status(404).json({ error: 'College not found' });
+// API for Colleges (initial setup, can be expanded)
+// Seed colleges if DB is empty (example - run once or use a dedicated script)
+async function seedColleges() {
+    try {
+        const count = await College.countDocuments();
+        if (count === 0 && sampleColleges && sampleColleges.length > 0) {
+            console.log('Seeding colleges to database...');
+            await College.insertMany(sampleColleges.map(c => ({...c, _id: undefined, id: undefined }))); // remove temporary frontend id
+            console.log('Colleges seeded successfully.');
+        }
+    } catch (error) {
+        console.error('Error seeding colleges:', error);
     }
-    res.json(college);
+}
+// Call it once on server start if you want to auto-seed.
+// Consider if this is the best place or if a separate script is better.
+// seedColleges(); 
+
+app.get('/api/colleges', async (req, res) => {
+    try {
+        const collegesList = await College.find({});
+        res.json(collegesList);
+    } catch (error) {
+        console.error("Error fetching colleges:", error);
+        res.status(500).json({ error: 'Failed to fetch colleges' });
+    }
 });
 
 // College Notes APIs

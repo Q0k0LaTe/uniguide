@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniGuide | College Application Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        
+        .tab-active {
+            color: #4f46e5;
+            border-bottom: 2px solid #4f46e5;
+        }
+        
+        .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .college-logo {
+            width: 60px;
+            height: 60px;
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-weight: 700;
+            color: #4b5563;
+        }
+        
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+        
+        .status-applied {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-drafting {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-accepted {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-rejected {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .status-waitlisted {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        
+        .essay-version {
+            font-size: 0.75rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        
+        .essay-version-active {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .calendar-day {
+            width: 14.28%;
+            height: 100px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .calendar-day-header {
+            width: 14.28%;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .calendar-day-number {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .calendar-day-current {
+            background-color: #eff6ff;
+        }
+        
+        .calendar-day-has-event {
+            position: relative;
+        }
+        
+        .calendar-day-has-event::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #4f46e5;
+        }
+        
+        .event-item {
+            font-size: 0.75rem;
+            padding: 0.15rem 0.5rem;
+            margin-bottom: 0.25rem;
+            border-radius: 4px;
+            background-color: #e0e7ff;
+            color: #4338ca;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .event-deadline {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .event-interview {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .event-task {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c7d2fe;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a5b4fc;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <svg class="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        <span class="ml-2 text-xl font-bold text-gray-900">Unified Hub</span>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <button type="button" class="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            <span>Add New</span>
+                        </button>
+                    </div>
+                    <div class="ml-4 relative flex-shrink-0">
+                        <div>
+                            <button type="button" class="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="user-menu-button">
+                                <span class="sr-only">Open user menu</span>
+                                <img class="h-8 w-8 rounded-full" id="user-avatar-img" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="User Avatar">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Dashboard Header -->
+        <div class="px-4 sm:px-0 mb-6">
+            <h1 class="text-2xl font-semibold text-gray-900">Application Dashboard</h1>
+            <p class="mt-1 text-sm text-gray-600">
+                Track your college applications, essays, and deadlines in one place.
+            </p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="border-b border-gray-200 mb-6">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <button class="tab-button tab-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="colleges">
+                    <i class="fas fa-university mr-2"></i>Colleges
+                </button>
+                <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 text-sm" data-tab="essays">
+                    <i class="fas fa-pen-fancy mr-2"></i>Essays
+                </button>
+                <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 text-sm" data-tab="timeline">
+                    <i class="fas fa-calendar-alt mr-2"></i>Timeline
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="px-4 sm:px-0">
+            <!-- Colleges Tab -->
+            <div id="colleges-tab" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center">
+                        <div class="relative">
+                            <input type="text" placeholder="Search colleges..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <select class="border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm py-2 pl-3 pr-8">
+                                <option value="">All Statuses</option>
+                                <option value="drafting">Drafting</option>
+                                <option value="applied">Applied</option>
+                                <option value="accepted">Accepted</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="waitlisted">Waitlisted</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="add-college-btn">
+                        <i class="fas fa-plus mr-2"></i>
+                        Add College
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" id="college-cards-grid">
+                    <!-- College Card 1 -->
+                    <div class="card bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="college-logo">
+                                    <span>MIT</span>
+                                </div>
+                                <span class="status-badge status-applied">Applied</span>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900">Massachusetts Institute of Technology</h3>
+                            <div class="mt-2 text-sm text-gray-500">
+                                <p>Cambridge, MA</p>
+                                <p class="mt-1">Early Action: Nov 1, 2023</p>
+                            </div>
+                            <div class="mt-4 border-t border-gray-200 pt-4">
+                                <h4 class="text-sm font-medium text-gray-900">Your Notes</h4>
+                                <p class="mt-1 text-sm text-gray-600 line-clamp-3">Need to finish supplemental essays. Research more about the Computer Science program and mention specific professors in "Why MIT" essay.</p>
+                            </div>
+                            <div class="mt-4 flex justify-between">
+                                <button class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fas fa-edit mr-1"></i> Edit
+                                </button>
+                                <button class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fas fa-external-link-alt mr-1"></i> View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- College Card 2 -->
+                    <div class="card bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="college-logo">
+                                    <span>SU</span>
+                                </div>
+                                <span class="status-badge status-drafting">Drafting</span>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900">Stanford University</h3>
+                            <div class="mt-2 text-sm text-gray-500">
+                                <p>Stanford, CA</p>
+                                <p class="mt-1">Regular Decision: Jan 5, 2024</p>
+                            </div>
+                            <div class="mt-4 border-t border-gray-200 pt-4">
+                                <h4 class="text-sm font-medium text-gray-900">Your Notes</h4>
+                                <p class="mt-1 text-sm text-gray-600 line-clamp-3">Need to start the "intellectual vitality" essay. Look into research opportunities in the Biology department.</p>
+                            </div>
+                            <div class="mt-4 flex justify-between">
+                                <button class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fas fa-edit mr-1"></i> Edit
+                                </button>
+                                <button class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fas fa-external-link-alt mr-1"></i> View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- College Card 3 -->
+                    <div class="card bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="college-logo">
+                                    <span>NYU</span>
+                                </div>
+                                <span class="status-badge status-accepted">Accepted</span>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900">New York University</h3>
+                            <div class="mt-2 text-sm text-gray-500">
+                                <p>New York, NY</p>
+                                <p class="mt-1">Early Decision: Dec 15, 2023</p>
+                            </div>
+                            <div class="mt-4 border-t border-gray-200 pt-4">
+                                <h4 class="text-sm font-medium text-gray-900">Your Notes</h4>
+                                <p class="mt-1 text-sm text-gray-600 line-clamp-3">Accepted with $30,000 scholarship! Need to submit housing application by May 1st. Schedule campus visit in April.</p>
+                            </div>
+                            <div class="mt-4 flex justify-between">
+                                <button class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fas fa-edit mr-1"></i> Edit
+                                </button>
+                                <button class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fas fa-external-link-alt mr-1"></i> View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- College Card 4 -->
+                    <div class="card bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="college-logo">
+                                    <span>UCLA</span>
+                                </div>
+                                <span class="status-badge status-waitlisted">Waitlisted</span>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900">University of California, Los Angeles</h3>
+                            <div class="mt-2 text-sm text-gray-500">
+                                <p>Los Angeles, CA</p>
+                                <p class="mt-1">Regular Decision: Mar 31, 2024</p>
+                            </div>
+                            <div class="mt-4 border-t border-gray-200 pt-4">
+                                <h4 class="text-sm font-medium text-gray-900">Your Notes</h4>
+                                <p class="mt-1 text-sm text-gray-600 line-clamp-3">Waitlisted - need to send letter of continued interest by April 15. Highlight recent achievements in robotics competition.</p>
+                            </div>
+                            <div class="mt-4 flex justify-between">
+                                <button class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fas fa-edit mr-1"></i> Edit
+                                </button>
+                                <button class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fas fa-external-link-alt mr-1"></i> View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- College Card 5 -->
+                    <div class="card bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="college-logo">
+                                    <span>UMich</span>
+                                </div>
+                                <span class="status-badge status-rejected">Rejected</span>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900">University of Michigan</h3>
+                            <div class="mt-2 text-sm text-gray-500">
+                                <p>Ann Arbor, MI</p>
+                                <p class="mt-1">Early Action: Dec 15, 2023</p>
+                            </div>
+                            <div class="mt-4 border-t border-gray-200 pt-4">
+                                <h4 class="text-sm font-medium text-gray-900">Your Notes</h4>
+                                <p class="mt-1 text-sm text-gray-600 line-clamp-3">Rejected - consider applying as a transfer student next year. Focus on other options for now.</p>
+                            </div>
+                            <div class="mt-4 flex justify-between">
+                                <button class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fas fa-edit mr-1"></i> Edit
+                                </button>
+                                <button class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fas fa-external-link-alt mr-1"></i> View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- College Card 6 -->
+                    <div class="card bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="college-logo">
+                                    <span>BU</span>
+                                </div>
+                                <span class="status-badge status-drafting">Drafting</span>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900">Boston University</h3>
+                            <div class="mt-2 text-sm text-gray-500">
+                                <p>Boston, MA</p>
+                                <p class="mt-1">Regular Decision: Jan 4, 2024</p>
+                            </div>
+                            <div class="mt-4 border-t border-gray-200 pt-4">
+                                <h4 class="text-sm font-medium text-gray-900">Your Notes</h4>
+                                <p class="mt-1 text-sm text-gray-600 line-clamp-3">Need to request recommendation letter from Mr. Johnson. Research more about their journalism program for "Why BU" essay.</p>
+                            </div>
+                            <div class="mt-4 flex justify-between">
+                                <button class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fas fa-edit mr-1"></i> Edit
+                                </button>
+                                <button class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fas fa-external-link-alt mr-1"></i> View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Essays Tab -->
+            <div id="essays-tab" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center">
+                        <div class="relative">
+                            <input type="text" placeholder="Search essays..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <select class="border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm py-2 pl-3 pr-8">
+                                <option value="">All Colleges</option>
+                                <option value="mit">MIT</option>
+                                <option value="stanford">Stanford</option>
+                                <option value="nyu">NYU</option>
+                                <option value="ucla">UCLA</option>
+                                <option value="umich">UMich</option>
+                                <option value="bu">Boston University</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="add-essay-btn">
+                        <i class="fas fa-plus mr-2"></i>
+                        New Essay
+                    </button>
+                </div>
+
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <ul class="divide-y divide-gray-200" id="essays-list">
+                        <!-- Essay Item 1 -->
+                        <li>
+                            <div class="px-4 py-4 sm:px-6">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                            <span class="text-indigo-600 font-medium">MIT</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="text-sm font-medium text-gray-900">Why MIT Essay</h4>
+                                            <p class="text-xs text-gray-500">650 words max</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Complete
+                                        </span>
+                                        <button class="ml-4 text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-2 sm:flex sm:justify-between">
+                                    <div class="sm:flex">
+                                        <p class="flex items-center text-sm text-gray-500">
+                                            <i class="fas fa-clock flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            Last edited: Oct 25, 2023
+                                        </p>
+                                        <p class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                            <i class="fas fa-file-alt flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            3 versions
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 border-t border-gray-100 pt-4">
+                                    <div class="flex space-x-2">
+                                        <span class="essay-version essay-version-active">V3 (Current)</span>
+                                        <span class="essay-version">V2</span>
+                                        <span class="essay-version">V1</span>
+                                    </div>
+                                    <p class="mt-2 text-sm text-gray-600 line-clamp-2">
+                                        MIT's collaborative atmosphere and cutting-edge research in artificial intelligence perfectly align with my academic interests. The EECS department's work on...
+                                    </p>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- Essay Item 2 -->
+                        <li>
+                            <div class="px-4 py-4 sm:px-6">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                            <span class="text-indigo-600 font-medium">COM</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="text-sm font-medium text-gray-900">Common App Personal Statement</h4>
+                                            <p class="text-xs text-gray-500">650 words max</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Complete
+                                        </span>
+                                        <button class="ml-4 text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-2 sm:flex sm:justify-between">
+                                    <div class="sm:flex">
+                                        <p class="flex items-center text-sm text-gray-500">
+                                            <i class="fas fa-clock flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            Last edited: Oct 15, 2023
+                                        </p>
+                                        <p class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                            <i class="fas fa-file-alt flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            5 versions
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 border-t border-gray-100 pt-4">
+                                    <div class="flex space-x-2">
+                                        <span class="essay-version essay-version-active">V5 (Current)</span>
+                                        <span class="essay-version">V4</span>
+                                        <span class="essay-version">V3</span>
+                                        <span class="essay-version">V2</span>
+                                        <span class="essay-version">V1</span>
+                                    </div>
+                                    <p class="mt-2 text-sm text-gray-600 line-clamp-2">
+                                        The rhythmic beeping of hospital monitors became the soundtrack of my summer. As a volunteer in the pediatric ward, I witnessed both heartbreak and hope...
+                                    </p>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- Essay Item 3 -->
+                        <li>
+                            <div class="px-4 py-4 sm:px-6">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                            <span class="text-indigo-600 font-medium">SU</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="text-sm font-medium text-gray-900">Stanford - Intellectual Vitality</h4>
+                                            <p class="text-xs text-gray-500">250 words max</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            In Progress
+                                        </span>
+                                        <button class="ml-4 text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-2 sm:flex sm:justify-between">
+                                    <div class="sm:flex">
+                                        <p class="flex items-center text-sm text-gray-500">
+                                            <i class="fas fa-clock flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            Last edited: Oct 28, 2023
+                                        </p>
+                                        <p class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                            <i class="fas fa-file-alt flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            2 versions
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 border-t border-gray-100 pt-4">
+                                    <div class="flex space-x-2">
+                                        <span class="essay-version essay-version-active">V2 (Current)</span>
+                                        <span class="essay-version">V1</span>
+                                    </div>
+                                    <p class="mt-2 text-sm text-gray-600 line-clamp-2">
+                                        My intellectual curiosity was sparked during a summer research project on biodegradable plastics. When our initial experiments failed, I found myself...
+                                    </p>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- Essay Item 4 -->
+                        <li>
+                            <div class="px-4 py-4 sm:px-6">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                            <span class="text-indigo-600 font-medium">NYU</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="text-sm font-medium text-gray-900">NYU - Why NYU</h4>
+                                            <p class="text-xs text-gray-500">400 words max</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Complete
+                                        </span>
+                                        <button class="ml-4 text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-2 sm:flex sm:justify-between">
+                                    <div class="sm:flex">
+                                        <p class="flex items-center text-sm text-gray-500">
+                                            <i class="fas fa-clock flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            Last edited: Oct 10, 2023
+                                        </p>
+                                        <p class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                            <i class="fas fa-file-alt flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            3 versions
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 border-t border-gray-100 pt-4">
+                                    <div class="flex space-x-2">
+                                        <span class="essay-version essay-version-active">V3 (Current)</span>
+                                        <span class="essay-version">V2</span>
+                                        <span class="essay-version">V1</span>
+                                    </div>
+                                    <p class="mt-2 text-sm text-gray-600 line-clamp-2">
+                                        NYU's Tisch School of the Arts represents the perfect intersection of creative expression and academic rigor. During my campus visit last spring, I was captivated by...
+                                    </p>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- Essay Item 5 -->
+                        <li>
+                            <div class="px-4 py-4 sm:px-6">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                            <span class="text-indigo-600 font-medium">BU</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="text-sm font-medium text-gray-900">Boston University - Why BU</h4>
+                                            <p class="text-xs text-gray-500">250 words max</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                            Not Started
+                                        </span>
+                                        <button class="ml-4 text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-2 sm:flex sm:justify-between">
+                                    <div class="sm:flex">
+                                        <p class="flex items-center text-sm text-gray-500">
+                                            <i class="fas fa-clock flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            Due: Dec 15, 2023
+                                        </p>
+                                        <p class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                            <i class="fas fa-file-alt flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            0 versions
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 border-t border-gray-100 pt-4">
+                                    <p class="mt-2 text-sm text-gray-600">
+                                        <button class="text-indigo-600 hover:text-indigo-900 font-medium">
+                                            <i class="fas fa-plus mr-1"></i> Start writing
+                                        </button>
+                                    </p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Timeline Tab -->
+            <div id="timeline-tab" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center">
+                        <h2 class="text-lg font-medium text-gray-900">November 2023</h2>
+                        <div class="ml-4 flex">
+                            <button class="p-1 rounded-full text-gray-400 hover:text-gray-500">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="p-1 rounded-full text-gray-400 hover:text-gray-500 ml-2">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="add-event-btn">
+                        <i class="fas fa-plus mr-2"></i>
+                        Add Event
+                    </button>
+                </div>
+
+                <!-- Calendar -->
+                <div class="bg-white shadow overflow-hidden rounded-lg">
+                    <!-- Calendar Header -->
+                    <div class="flex bg-gray-50 text-gray-600 text-xs leading-6 font-semibold uppercase tracking-wider">
+                        <div class="calendar-day-header py-2">Sun</div>
+                        <div class="calendar-day-header py-2">Mon</div>
+                        <div class="calendar-day-header py-2">Tue</div>
+                        <div class="calendar-day-header py-2">Wed</div>
+                        <div class="calendar-day-header py-2">Thu</div>
+                        <div class="calendar-day-header py-2">Fri</div>
+                        <div class="calendar-day-header py-2">Sat</div>
+                    </div>
+
+                    <!-- Calendar Grid -->
+                    <div class="grid grid-cols-7">
+                        <!-- Week 1 -->
+                        <div class="calendar-day bg-gray-100 p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">29</div>
+                        </div>
+                        <div class="calendar-day bg-gray-100 p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">30</div>
+                        </div>
+                        <div class="calendar-day bg-gray-100 p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">31</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40 calendar-day-has-event">
+                            <div class="calendar-day-number">1</div>
+                            <div class="event-item event-deadline">MIT Early Action Due</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">2</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">3</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">4</div>
+                        </div>
+
+                        <!-- Week 2 -->
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">5</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40 calendar-day-has-event">
+                            <div class="calendar-day-number">6</div>
+                            <div class="event-item event-task">Request Rec Letter</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">7</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">8</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">9</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40 calendar-day-has-event">
+                            <div class="calendar-day-number">10</div>
+                            <div class="event-item">Stanford Info Session</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">11</div>
+                        </div>
+
+                        <!-- Week 3 -->
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">12</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">13</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40 calendar-day-has-event">
+                            <div class="calendar-day-number">14</div>
+                            <div class="event-item event-task">Finish Common App</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40 calendar-day-current calendar-day-has-event">
+                            <div class="calendar-day-number">15</div>
+                            <div class="event-item event-deadline">NYU Early Decision Due</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">16</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">17</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">18</div>
+                        </div>
+
+                        <!-- Week 4 -->
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">19</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40 calendar-day-has-event">
+                            <div class="calendar-day-number">20</div>
+                            <div class="event-item event-interview">UCLA Alumni Interview</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">21</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">22</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">23</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">24</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">25</div>
+                        </div>
+
+                        <!-- Week 5 -->
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">26</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">27</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">28</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40 calendar-day-has-event">
+                            <div class="calendar-day-number">29</div>
+                            <div class="event-item event-task">Stanford Essay Draft</div>
+                        </div>
+                        <div class="calendar-day p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">30</div>
+                        </div>
+                        <div class="calendar-day bg-gray-100 p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">1</div>
+                        </div>
+                        <div class="calendar-day bg-gray-100 p-2 h-24 sm:h-32 md:h-40">
+                            <div class="calendar-day-number">2</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Deadlines -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Upcoming Deadlines</h3>
+                    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                        <ul class="divide-y divide-gray-200" id="upcoming-deadlines-list">
+                            <li>
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                                <i class="fas fa-calendar-day text-red-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <h4 class="text-sm font-medium text-gray-900">MIT Early Action Application Due</h4>
+                                                <p class="text-xs text-gray-500">November 1, 2023</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                High Priority
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                                <i class="fas fa-calendar-day text-red-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <h4 class="text-sm font-medium text-gray-900">NYU Early Decision Application Due</h4>
+                                                <p class="text-xs text-gray-500">November 15, 2023</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                High Priority
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                                                <i class="fas fa-tasks text-yellow-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <h4 class="text-sm font-medium text-gray-900">Stanford Essay Draft Deadline</h4>
+                                                <p class="text-xs text-gray-500">November 29, 2023</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                Medium Priority
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                                <i class="fas fa-calendar-day text-red-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <h4 class="text-sm font-medium text-gray-900">Regular Decision Applications Due</h4>
+                                                <p class="text-xs text-gray-500">January 1-5, 2024</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                High Priority
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add College Modal -->
+    <div id="add-college-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Add New College</h3>
+                <button class="text-gray-400 hover:text-gray-500 close-modal" data-modal="add-college-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form>
+                <div class="space-y-4">
+                    <div>
+                        <label for="college-name" class="block text-sm font-medium text-gray-700">College Name</label>
+                        <input type="text" name="college-name" id="college-name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter college name">
+                    </div>
+                    <div>
+                        <label for="college-location" class="block text-sm font-medium text-gray-700">Location</label>
+                        <input type="text" name="college-location" id="college-location" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="City, State">
+                    </div>
+                    <div>
+                        <label for="application-type" class="block text-sm font-medium text-gray-700">Application Type</label>
+                        <select id="application-type" name="application-type" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">Select application type</option>
+                            <option value="early-decision">Early Decision</option>
+                            <option value="early-action">Early Action</option>
+                            <option value="regular-decision">Regular Decision</option>
+                            <option value="rolling">Rolling Admission</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="deadline" class="block text-sm font-medium text-gray-700">Application Deadline</label>
+                        <input type="date" name="deadline" id="deadline" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                        <select id="status" name="status" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="drafting">Drafting</option>
+                            <option value="applied">Applied</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="waitlisted">Waitlisted</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
+                        <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Add any notes about this college"></textarea>
+                    </div>
+                </div>
+                <div class="mt-5 sm:mt-6 flex justify-end">
+                    <button type="button" class="mr-3 inline-flex justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 close-modal" data-modal="add-college-modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="inline-flex justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Add College
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Essay Modal -->
+    <div id="add-essay-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Add New Essay</h3>
+                <button class="text-gray-400 hover:text-gray-500 close-modal" data-modal="add-essay-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form>
+                <div class="space-y-4">
+                    <div>
+                        <label for="essay-title" class="block text-sm font-medium text-gray-700">Essay Title</label>
+                        <input type="text" name="essay-title" id="essay-title" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter essay title">
+                    </div>
+                    <div>
+                        <label for="essay-college" class="block text-sm font-medium text-gray-700">College</label>
+                        <select id="essay-college" name="essay-college" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">Select college</option>
+                            <option value="common-app">Common Application</option>
+                            <option value="mit">MIT</option>
+                            <option value="stanford">Stanford University</option>
+                            <option value="nyu">NYU</option>
+                            <option value="ucla">UCLA</option>
+                            <option value="umich">University of Michigan</option>
+                            <option value="bu">Boston University</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="word-limit" class="block text-sm font-medium text-gray-700">Word Limit</label>
+                        <input type="number" name="word-limit" id="word-limit" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Maximum word count">
+                    </div>
+                    <div>
+                        <label for="prompt" class="block text-sm font-medium text-gray-700">Essay Prompt</label>
+                        <textarea id="prompt" name="prompt" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter the essay prompt"></textarea>
+                    </div>
+                    <div>
+                        <label for="essay-content" class="block text-sm font-medium text-gray-700">Essay Content (Version 1)</label>
+                        <textarea id="essay-content" name="essay-content" rows="6" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Start writing your essay here..."></textarea>
+                    </div>
+                </div>
+                <div class="mt-5 sm:mt-6 flex justify-end">
+                    <button type="button" class="mr-3 inline-flex justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 close-modal" data-modal="add-essay-modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="inline-flex justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Save Essay
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Event Modal -->
+    <div id="add-event-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Add New Event</h3>
+                <button class="text-gray-400 hover:text-gray-500 close-modal" data-modal="add-event-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form>
+                <div class="space-y-4">
+                    <div>
+                        <label for="event-title" class="block text-sm font-medium text-gray-700">Event Title</label>
+                        <input type="text" name="event-title" id="event-title" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter event title">
+                    </div>
+                    <div>
+                        <label for="event-type" class="block text-sm font-medium text-gray-700">Event Type</label>
+                        <select id="event-type" name="event-type" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="deadline">Application Deadline</option>
+                            <option value="task">Task</option>
+                            <option value="interview">Interview</option>
+                            <option value="visit">Campus Visit</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="event-date" class="block text-sm font-medium text-gray-700">Date</label>
+                        <input type="date" name="event-date" id="event-date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="event-time" class="block text-sm font-medium text-gray-700">Time (optional)</label>
+                        <input type="time" name="event-time" id="event-time" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="event-college" class="block text-sm font-medium text-gray-700">Related College (optional)</label>
+                        <select id="event-college" name="event-college" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">Select college</option>
+                            <option value="mit">MIT</option>
+                            <option value="stanford">Stanford University</option>
+                            <option value="nyu">NYU</option>
+                            <option value="ucla">UCLA</option>
+                            <option value="umich">University of Michigan</option>
+                            <option value="bu">Boston University</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="event-priority" class="block text-sm font-medium text-gray-700">Priority</label>
+                        <select id="event-priority" name="event-priority" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="event-notes" class="block text-sm font-medium text-gray-700">Notes</label>
+                        <textarea id="event-notes" name="event-notes" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Add any notes about this event"></textarea>
+                    </div>
+                </div>
+                <div class="mt-5 sm:mt-6 flex justify-end">
+                    <button type="button" class="mr-3 inline-flex justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 close-modal" data-modal="add-event-modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="inline-flex justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Add Event
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and hide all contents
+                tabButtons.forEach(btn => btn.classList.remove('tab-active'));
+                tabContents.forEach(content => content.classList.add('hidden'));
+                
+                // Add active class to clicked button and show corresponding content
+                button.classList.add('tab-active');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+            });
+        });
+        
+        // Modal functionality
+        const modalButtons = {
+            'add-college-btn': 'add-college-modal',
+            'add-essay-btn': 'add-essay-modal',
+            'add-event-btn': 'add-event-modal'
+        };
+        
+        // Open modals
+        Object.entries(modalButtons).forEach(([buttonId, modalId]) => {
+            const button = document.getElementById(buttonId);
+            const modal = document.getElementById(modalId);
+            
+            button.addEventListener('click', () => {
+                modal.classList.add('show');
+            });
+        });
+        
+        // Close modals
+        const closeButtons = document.querySelectorAll('.close-modal');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const modalId = button.getAttribute('data-modal');
+                document.getElementById(modalId).classList.remove('show');
+            });
+        });
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (event) => {
+            document.querySelectorAll('.modal').forEach(modal => {
+                if (event.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+        });
+        
+        // Form submissions (prevent default for demo)
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                // Here you would normally handle the form submission
+                // For demo purposes, just close the modal
+                const modal = form.closest('.modal');
+                if (modal) {
+                    modal.classList.remove('show');
+                }
+                alert('Form submitted successfully!');
+            });
+        });
+    </script>
+</body>
+</html>
